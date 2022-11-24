@@ -21,3 +21,5 @@ Then add this.
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+:octocat: Created by github-bot. Delete this line to trigger PR actions

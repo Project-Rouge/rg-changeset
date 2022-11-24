@@ -1,5 +1,15 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.0-next.2
+
+### Minor Changes
+
+- c1debfc: add line to be deleted to trigger PR actions
+
+### Patch Changes
+
+- 0d1f18a: chore: remove noisy logs
+
 ## 0.1.0-next.1
 
 ### Patch Changes
