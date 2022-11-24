@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 process.env.GITHUB_REF || config();
-import { exec } from '@actions/exec';
+import { exec, getExecOutput } from '@actions/exec';
 import { getOctokit, context } from '@actions/github';
 import { writeFileSync, readFileSync, existsSync } from 'fs';
 
@@ -13,8 +13,6 @@ let _octokit: ReturnType<typeof getOctokit>;
 
 if (thisPrBranch) runPR();
 else runCD();
-
-runPR()
 
 async function runPR() {
   const pre = '.changeset/pre.json';
@@ -78,25 +76,31 @@ async function setReleaseMode({ forceExit = false } = {}) {
 /** release (if possible) */
 async function release() {
   try {
-    await exec('yarn changeset publish');
+
+    const version = getJson().version;
+
+    const publishedNpmVersions = await getExecOutput(`npm view @project-rouge/rg-changeset-action version`);
+
+    if (!publishedNpmVersions.stdout.split('\n').includes(version)) {
+      await exec('yarn changeset publish');
+    }
 
     const octokit = getGithubKit();
-    const pkg = getJson();
 
     try {
       await octokit.rest.repos.getReleaseByTag({
         ...context.repo,
-        tag: pkg.version,
+        tag: version,
       })
     } catch (e) {
       if (e.status !== 404) throw e;
       // if failed because tag does not exist, create it
       await octokit.rest.repos.createRelease({
         ...context.repo,
-        name: pkg.version,
-        tag_name: pkg.version,
-        body: getChangelogEntry(pkg.version),
-        prerelease: pkg.version.includes("-"),
+        name: version,
+        tag_name: version,
+        body: getChangelogEntry(version),
+        prerelease: version.includes("-"),
       })
     }
 
