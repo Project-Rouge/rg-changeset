@@ -7482,9 +7482,9 @@ async function setReleaseMode({ forceExit = false } = {}) {
   updateChangesetConfig({ branch: forceExit ? "main" : thisBranch });
   try {
     if (forceExit || thisBranch === "main")
-      await (0, import_exec.exec)(`yarn changeset pre exit`);
+      await (0, import_exec.getExecOutput)(`yarn changeset pre exit`);
     if (!forceExit && thisBranch === "dev")
-      await (0, import_exec.exec)(`yarn changeset pre enter next`);
+      await (0, import_exec.getExecOutput)(`yarn changeset pre enter next`);
   } catch (e) {
     catchErrorLog(e);
   }
