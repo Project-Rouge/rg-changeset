@@ -7521,10 +7521,11 @@ async function createBumpPR({
     await (0, import_exec2.exec)("yarn changeset version");
     await (0, import_exec2.exec)(`git checkout -b ${prBranch}`);
     await (0, import_exec2.exec)("git restore .changeset/config.json");
-    await (0, import_exec2.exec)("git add .");
     const version = getJson().version;
-    if (!await canCommit())
+    if (!await canCommit()) {
+      console.log("nothing to commit.");
       return;
+    }
     const footNote = appendToReadme(prBranch);
     await (0, import_exec2.exec)("git add .");
     await (0, import_exec2.exec)(`git commit -m "(chore) changeset bump to ${version}"`);
@@ -7618,9 +7619,10 @@ async function prMainToNext() {
     await (0, import_exec5.exec)(`git checkout -b ${prBranch}`);
     await (0, import_exec5.exec)("yarn changeset pre enter next");
     await (0, import_exec5.exec)("git restore .changeset/config.json");
-    await (0, import_exec5.exec)("git add .");
-    if (!await canCommit())
+    if (!await canCommit()) {
+      console.log("nothing to commit.");
       return;
+    }
     const footNote = appendToReadme(prBranch);
     await (0, import_exec5.exec)("git add .");
     await (0, import_exec5.exec)('git commit -m "prep main-to-next"');

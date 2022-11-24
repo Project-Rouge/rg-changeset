@@ -26,9 +26,11 @@ export async function createBumpPR({
     await exec('yarn changeset version');
     await exec(`git checkout -b ${prBranch}`);
     await exec('git restore .changeset/config.json');
-    await exec('git add .');
     const version = getJson().version as string;
-    if (!(await canCommit())) return;
+    if (!(await canCommit())) {
+      console.log('nothing to commit.');
+      return;
+    }
     const footNote = appendToReadme(prBranch);
     await exec('git add .');
     await exec(`git commit -m "(chore) changeset bump to ${version}"`)

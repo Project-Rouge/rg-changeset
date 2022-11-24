@@ -20,8 +20,10 @@ export async function prMainToNext() {
     await exec(`git checkout -b ${prBranch}`);
     await exec('yarn changeset pre enter next');
     await exec('git restore .changeset/config.json');
-    await exec('git add .');
-    if (!(await canCommit())) return;
+    if (!(await canCommit())) {
+      console.log('nothing to commit.');
+      return;
+    }
     const footNote = appendToReadme(prBranch);
     await exec('git add .');
     await exec('git commit -m "prep main-to-next"')
