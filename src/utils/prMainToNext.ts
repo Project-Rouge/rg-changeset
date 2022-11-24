@@ -1,11 +1,11 @@
 import { exec } from '@actions/exec';
 import { context } from '@actions/github';
-import { appendToReadme } from './appendToReadme';
 import { canCommit } from './canCommit';
 import { catchErrorLog } from "./catchErrorLog";
 import { Env } from './Env';
 import { getGithubKit } from "./getGithubKit";
 import { getPR } from "./getPR";
+import { prependToReadme } from './prependToReadme';
 
 /** create a PR from `main` to `next` (if possible) */
 export async function prMainToNext() {
@@ -24,7 +24,7 @@ export async function prMainToNext() {
       console.log('nothing to commit.');
       return;
     }
-    const footNote = appendToReadme(prBranch);
+    const botNote = prependToReadme(prBranch);
     await exec('git add .');
     await exec('git commit -m "prep main-to-next"')
     await exec(`git push origin ${prBranch} --force`);
@@ -37,7 +37,7 @@ export async function prMainToNext() {
       base: baseBranch,
       head: prBranch,
       title: ':arrow_down: (sync) merge `main` back into `next`',
-      body: footNote
+      body: botNote
     });
   } catch (e) {
     catchErrorLog(e);
