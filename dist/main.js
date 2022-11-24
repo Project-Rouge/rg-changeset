@@ -7491,12 +7491,16 @@ async function setReleaseMode({ forceExit = false } = {}) {
   }
 }
 async function release() {
+  const version = getJson().version;
   try {
-    const version = getJson().version;
     const publishedNpmVersions = await (0, import_exec.getExecOutput)(`npm view @project-rouge/rg-changeset-action version`);
     if (!publishedNpmVersions.stdout.split("\n").includes(version)) {
       await (0, import_exec.exec)("yarn changeset publish");
     }
+  } catch (e) {
+    catchErrorLog(e);
+  }
+  try {
     const octokit = getGithubKit();
     try {
       await octokit.rest.repos.getReleaseByTag({
@@ -7506,6 +7510,7 @@ async function release() {
     } catch (e) {
       if (e.status !== 404)
         throw e;
+      console.log("tag does not exist, creating...");
       await octokit.rest.repos.createRelease({
         ...import_github.context.repo,
         name: version,
