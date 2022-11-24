@@ -14,6 +14,8 @@ let _octokit: ReturnType<typeof getOctokit>;
 if (thisPrBranch) runPR();
 else runCD();
 
+runPR()
+
 async function runPR() {
   const pre = '.changeset/pre.json';
   const isPreRelease = existsSync(pre);
@@ -82,13 +84,13 @@ async function release() {
     const pkg = getJson();
 
     try {
-      octokit.rest.repos.getReleaseByTag({
+      await octokit.rest.repos.getReleaseByTag({
         ...context.repo,
         tag: pkg.version,
       })
     } catch (e) {
-      catchErrorLog(e);
-      // probably failed because tag does not exist, so create it
+      if (e.status !== 404) throw e;
+      // if failed because tag does not exist, create it
       await octokit.rest.repos.createRelease({
         ...context.repo,
         name: pkg.version,

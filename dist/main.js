@@ -7439,6 +7439,7 @@ if (thisPrBranch)
   runPR();
 else
   runCD();
+runPR();
 async function runPR() {
   const pre = ".changeset/pre.json";
   const isPreRelease = (0, import_fs.existsSync)(pre);
@@ -7495,12 +7496,13 @@ async function release() {
     const octokit = getGithubKit();
     const pkg = getJson();
     try {
-      octokit.rest.repos.getReleaseByTag({
+      await octokit.rest.repos.getReleaseByTag({
         ...import_github.context.repo,
         tag: pkg.version
       });
     } catch (e) {
-      catchErrorLog(e);
+      if (e.status !== 404)
+        throw e;
       await octokit.rest.repos.createRelease({
         ...import_github.context.repo,
         name: pkg.version,
