@@ -1,5 +1,6 @@
 import { exec } from '@actions/exec';
 import { context } from '@actions/github';
+import { canCommit } from './canCommit';
 import { catchErrorLog } from "./catchErrorLog";
 import { Env } from './Env';
 import { getChangelogEntry } from "./getChangelogEntry";
@@ -25,6 +26,7 @@ export async function createBumpPR({
     await exec('git add .');
     await exec('git reset .changeset/config.json');
     const version = getJson().version as string;
+    if(!(await canCommit())) return;
     await exec(`git commit -m "(chore) changeset bump to ${version}"`)
     await exec(`git push origin ${prBranch} --force`);
 
