@@ -7481,10 +7481,11 @@ async function setGitConfig() {
 async function setReleaseMode({ forceExit = false } = {}) {
   updateChangesetConfig({ branch: forceExit ? "main" : thisBranch });
   try {
-    if (forceExit || thisBranch === "main")
-      await (0, import_exec.getExecOutput)(`yarn changeset pre exit`);
-    if (!forceExit && thisBranch === "dev")
-      await (0, import_exec.getExecOutput)(`yarn changeset pre enter next`);
+    const isInPreMode = (0, import_fs.existsSync)("./.changeset/pre.json");
+    if (isInPreMode && (forceExit || thisBranch === "main"))
+      await (0, import_exec.exec)(`yarn changeset pre exit`);
+    if (!isInPreMode && !forceExit && thisBranch === "dev")
+      await (0, import_exec.exec)(`yarn changeset pre enter next`);
   } catch (e) {
     catchErrorLog(e);
   }
