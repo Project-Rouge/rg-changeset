@@ -4,5 +4,7 @@
   "initialVersions": {
     "@project-rouge/rg-changeset-action": "0.0.2"
   },
-  "changesets": []
+  "changesets": [
+    "rare-socks-joke"
+  ]
 }
