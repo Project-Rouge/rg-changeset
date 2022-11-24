@@ -7435,15 +7435,17 @@ process.env.GITHUB_REF || (0, import_dotenv.config)();
 var thisBranch = process.env.GITHUB_REF_NAME;
 var thisPrBranch = process.env.GITHUB_BASE_REF;
 var _octokit;
-if (thisPrBranch)
-  runPR();
-else
-  runCD();
+runPR();
 async function runPR() {
   try {
-    const tags = await getGithubKit().rest.repos.getReleaseByTag({
+    const pkg = getJson();
+    console.log(`version :::: ${pkg.version}`);
+    await getGithubKit().rest.repos.createRelease({
       ...import_github.context.repo,
-      tag: getJson().version
+      name: pkg.version,
+      tag_name: pkg.version,
+      body: getChangelogEntry(pkg.version),
+      prerelease: pkg.version.includes("-")
     });
   } catch (e) {
     catchErrorLog(e);
@@ -7457,23 +7459,6 @@ async function runPR() {
     throw new Error(`PR is in pre-release mode. Forgot to run \`yarn changeset pre exit\`?`);
   }
 }
-async function runCD() {
-  pipeLog("setGitConfig");
-  await setGitConfig();
-  pipeLog("setReleaseMode");
-  await setReleaseMode();
-  pipeLog("release");
-  await release();
-  pipeLog("prMainToNext");
-  await prMainToNext();
-  pipeLog("createBumpPR");
-  await createBumpPR({});
-  pipeLog("createNextToMainBumpPR");
-  await createNextToMainBumpPR();
-}
-function pipeLog(message) {
-  console.log(`\u{1F33A} ${message}`);
-}
 function catchErrorLog(error) {
   console.trace(`\u{1F41B}`);
   console.log(error);
@@ -7482,137 +7467,8 @@ function catchErrorLog(error) {
   } catch (error2) {
   }
 }
-async function setGitConfig() {
-  await (0, import_exec.exec)("git config user.name github-actions");
-  await (0, import_exec.exec)("git config user.email github-actions@github.com");
-}
-async function setReleaseMode({ forceExit = false } = {}) {
-  updateChangesetConfig({ branch: forceExit ? "main" : thisBranch });
-  try {
-    if (forceExit || thisBranch === "main")
-      await (0, import_exec.exec)(`yarn changeset pre exit`);
-    if (!forceExit && thisBranch === "dev")
-      await (0, import_exec.exec)(`yarn changeset pre enter next`);
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-async function release() {
-  try {
-    await (0, import_exec.exec)("yarn changeset publish");
-    const octokit = getGithubKit();
-    const pkg = getJson();
-    try {
-      octokit.rest.repos.getReleaseByTag({
-        ...import_github.context.repo,
-        tag: pkg.version
-      });
-    } catch (e) {
-      catchErrorLog(e);
-      await octokit.rest.repos.createRelease({
-        ...import_github.context.repo,
-        name: pkg.version,
-        tag_name: pkg.version,
-        body: getChangelogEntry(pkg.version),
-        prerelease: pkg.version.includes("-")
-      });
-    }
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-async function prMainToNext() {
-  if (thisBranch !== "main")
-    return;
-  try {
-    const baseBranch = "next";
-    const prBranch = "main";
-    const pr = await getPR({ baseBranch, prBranch });
-    if (pr)
-      return;
-    const octokit = getGithubKit();
-    await octokit.rest.pulls.create({
-      ...import_github.context.repo,
-      base: baseBranch,
-      head: prBranch,
-      title: ":arrow_down: (sync) merge `main` back into `next`",
-      body: "Created by Github action"
-    });
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-async function getPR({ baseBranch, prBranch }) {
-  try {
-    const octokit = getGithubKit();
-    const prList = await octokit.rest.pulls.list({
-      ...import_github.context.repo,
-      state: "open"
-    });
-    return prList.data.find((pr) => pr.base.ref === baseBranch && pr.head.ref === prBranch);
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-async function createBumpPR({
-  prBranch = `release/${thisBranch}-release`,
-  baseBranch = thisBranch,
-  title = `Upcoming _version_ release (\`${baseBranch}\`)`
-}) {
-  try {
-    await (0, import_exec.exec)("yarn changeset version");
-    await (0, import_exec.exec)(`git checkout -b ${prBranch}`);
-    await (0, import_exec.exec)("git add .");
-    await (0, import_exec.exec)("git reset .changeset/config.json");
-    const version = getJson().version;
-    await (0, import_exec.exec)(`git commit -m "(chore) changeset bump to ${version}"`);
-    await (0, import_exec.exec)(`git push origin ${prBranch} --force`);
-    const pr = await getPR({ baseBranch, prBranch });
-    title = title.replace("_version_", `\`${version}\``);
-    const octokit = getGithubKit();
-    if (pr) {
-      await octokit.rest.pulls.update({
-        ...import_github.context.repo,
-        pull_number: pr.number,
-        title,
-        body: getChangelogEntry(version) + "\n\nCreated by Github action."
-      });
-    } else {
-      await octokit.rest.pulls.create({
-        ...import_github.context.repo,
-        head: prBranch,
-        base: baseBranch,
-        title,
-        body: getChangelogEntry(version) + "\n\nCreated by Github action."
-      });
-    }
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-async function createNextToMainBumpPR() {
-  if (thisBranch !== "next")
-    return;
-  try {
-    await (0, import_exec.exec)("git reset --hard");
-    await setReleaseMode({ forceExit: true });
-    await createBumpPR({
-      prBranch: "release/next-to-main-release",
-      baseBranch: "main",
-      title: ":warning: Upcoming _version_ Release (`next` to `main`)"
-    });
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
 function getJson(file = "./package.json") {
   return JSON.parse((0, import_fs.readFileSync)(file, "utf-8"));
-}
-function updateChangesetConfig({ branch = thisBranch }) {
-  const configFilePath = ".changeset/config.json";
-  const config2 = getJson(configFilePath);
-  config2.baseBranch = branch;
-  (0, import_fs.writeFileSync)(configFilePath, JSON.stringify(config2, null, 2) + "\n");
 }
 function getChangelogEntry(version) {
   const changelog = (0, import_fs.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
