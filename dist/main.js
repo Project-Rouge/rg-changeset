@@ -1183,7 +1183,7 @@ var require_exec = __commonJS({
       });
     }
     exports.exec = exec2;
-    function getExecOutput(commandLine, args, options) {
+    function getExecOutput2(commandLine, args, options) {
       var _a, _b;
       return __awaiter(this, void 0, void 0, function* () {
         let stdout = "";
@@ -1215,7 +1215,7 @@ var require_exec = __commonJS({
         };
       });
     }
-    exports.getExecOutput = getExecOutput;
+    exports.getExecOutput = getExecOutput2;
   }
 });
 
@@ -7439,7 +7439,6 @@ if (thisPrBranch)
   runPR();
 else
   runCD();
-runPR();
 async function runPR() {
   const pre = ".changeset/pre.json";
   const isPreRelease = (0, import_fs.existsSync)(pre);
@@ -7492,23 +7491,26 @@ async function setReleaseMode({ forceExit = false } = {}) {
 }
 async function release() {
   try {
-    await (0, import_exec.exec)("yarn changeset publish");
+    const version = getJson().version;
+    const publishedNpmVersions = await (0, import_exec.getExecOutput)(`npm view @project-rouge/rg-changeset-action version`);
+    if (!publishedNpmVersions.stdout.split("\n").includes(version)) {
+      await (0, import_exec.exec)("yarn changeset publish");
+    }
     const octokit = getGithubKit();
-    const pkg = getJson();
     try {
       await octokit.rest.repos.getReleaseByTag({
         ...import_github.context.repo,
-        tag: pkg.version
+        tag: version
       });
     } catch (e) {
       if (e.status !== 404)
         throw e;
       await octokit.rest.repos.createRelease({
         ...import_github.context.repo,
-        name: pkg.version,
-        tag_name: pkg.version,
-        body: getChangelogEntry(pkg.version),
-        prerelease: pkg.version.includes("-")
+        name: version,
+        tag_name: version,
+        body: getChangelogEntry(version),
+        prerelease: version.includes("-")
       });
     }
   } catch (e) {
