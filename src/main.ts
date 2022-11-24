@@ -9,7 +9,6 @@ import { pipeLog } from "./utils/pipeLog";
 import { prMainToNext } from "./utils/prMainToNext";
 import { release } from "./utils/release";
 import { setReleaseMode } from "./utils/setReleaseMode";
-import { canCommit } from "./utils/canCommit";
 
 if (Env.thisPrBranch) runPR();
 else runCD();
