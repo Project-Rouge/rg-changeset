@@ -1,5 +1,7 @@
 import { exec } from '@actions/exec';
 import { context } from '@actions/github';
+import { appendFileSync } from "fs";
+import { appendToReadme } from './appendToReadme';
 import { canCommit } from './canCommit';
 import { catchErrorLog } from "./catchErrorLog";
 import { Env } from './Env';
@@ -23,10 +25,12 @@ export async function createBumpPR({
   try {
     await exec('yarn changeset version');
     await exec(`git checkout -b ${prBranch}`);
+    await exec('git restore .changeset/config.json');
     await exec('git add .');
-    await exec('git reset .changeset/config.json');
     const version = getJson().version as string;
-    if(!(await canCommit())) return;
+    if (!(await canCommit())) return;
+    const footNote = appendToReadme(prBranch);
+    await exec('git add .');
     await exec(`git commit -m "(chore) changeset bump to ${version}"`)
     await exec(`git push origin ${prBranch} --force`);
 
@@ -41,7 +45,7 @@ export async function createBumpPR({
         ...context.repo,
         pull_number: pr.number,
         title,
-        body: getChangelogEntry(version) + '\n\nCreated by Github action.'
+        body: getChangelogEntry(version) + footNote
       })
     } else {
       await octokit.rest.pulls.create({
@@ -49,7 +53,7 @@ export async function createBumpPR({
         head: prBranch,
         base: baseBranch,
         title,
-        body: getChangelogEntry(version) + '\n\nCreated by Github action.'
+        body: getChangelogEntry(version) + footNote
       })
     }
   } catch (e) {

@@ -2484,8 +2484,8 @@ var require_dist_node2 = __commonJS({
     function isKeyOperator(operator) {
       return operator === ";" || operator === "&" || operator === "?";
     }
-    function getValues(context5, operator, key, modifier) {
-      var value = context5[key], result = [];
+    function getValues(context6, operator, key, modifier) {
+      var value = context6[key], result = [];
       if (isDefined(value) && value !== "") {
         if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
           value = value.toString();
@@ -2545,7 +2545,7 @@ var require_dist_node2 = __commonJS({
         expand: expand.bind(null, template)
       };
     }
-    function expand(template, context5) {
+    function expand(template, context6) {
       var operators = ["+", "#", ".", "/", ";", "?", "&"];
       return template.replace(/\{([^\{\}]+)\}|([^\{\}]+)/g, function(_, expression, literal) {
         if (expression) {
@@ -2557,7 +2557,7 @@ var require_dist_node2 = __commonJS({
           }
           expression.split(/,/g).forEach(function(variable) {
             var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
-            values.push(getValues(context5, operator, tmp[1], tmp[2] || tmp[3]));
+            values.push(getValues(context6, operator, tmp[1], tmp[2] || tmp[3]));
           });
           if (operator && operator !== "+") {
             var separator = ",";
@@ -7429,16 +7429,36 @@ var require_github = __commonJS({
 // src/main.ts
 var import_dotenv = __toESM(require_main());
 var import_exec7 = __toESM(require_exec());
-var import_fs5 = require("fs");
+var import_fs6 = require("fs");
 
 // src/utils/createBumpPR.ts
 var import_exec2 = __toESM(require_exec());
-var import_github3 = __toESM(require_github());
+var import_github4 = __toESM(require_github());
+
+// src/utils/appendToReadme.ts
+var import_github = __toESM(require_github());
+var import_fs2 = require("fs");
+
+// src/utils/getJson.ts
+var import_fs = require("fs");
+function getJson(file = "./package.json") {
+  return JSON.parse((0, import_fs.readFileSync)(file, "utf-8"));
+}
+
+// src/utils/appendToReadme.ts
+function appendToReadme(branch) {
+  const pkg = getJson();
+  (0, import_fs2.appendFileSync)("./README.md", "\n\n:octocat: Created by github-bot. Delete this line to trigger PR actions");
+  const readmeLine = (0, import_fs2.readFileSync)("./README.md", "utf-8").split("\n").length;
+  return `
+
+:octocat: Delete [bot footnote](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/blob/${branch}/README.md?plain=1#L${readmeLine - 1}-L${readmeLine}) to trigger PR actions`;
+}
 
 // src/utils/canCommit.ts
 var import_exec = __toESM(require_exec());
 async function canCommit() {
-  return (await (0, import_exec.getExecOutput)("git diff", [], { silent: false })).stdout.trim().length !== 0;
+  return (await (0, import_exec.getExecOutput)("git diff", [], { silent: true })).stdout.trim().length !== 0;
 }
 
 // src/utils/catchErrorLog.ts
@@ -7458,9 +7478,9 @@ var Env = {
 };
 
 // src/utils/getChangelogEntry.ts
-var import_fs = require("fs");
+var import_fs3 = require("fs");
 function getChangelogEntry(version) {
-  const changelog = (0, import_fs.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
+  const changelog = (0, import_fs3.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
   const start = 2 + changelog.indexOf(`## ${version}`);
   const end = start + 1 + changelog.slice(start + 1).findIndex((line) => line.startsWith("## "));
   const section = changelog.slice(start, end);
@@ -7468,27 +7488,21 @@ function getChangelogEntry(version) {
 }
 
 // src/utils/getGithubKit.ts
-var import_github = __toESM(require_github());
+var import_github2 = __toESM(require_github());
 var _octokit;
 function getGithubKit() {
   if (!_octokit)
-    _octokit = (0, import_github.getOctokit)(process.env.GITHUB_TOKEN);
+    _octokit = (0, import_github2.getOctokit)(process.env.GITHUB_TOKEN);
   return _octokit;
 }
 
-// src/utils/getJson.ts
-var import_fs2 = require("fs");
-function getJson(file = "./package.json") {
-  return JSON.parse((0, import_fs2.readFileSync)(file, "utf-8"));
-}
-
 // src/utils/getPR.ts
-var import_github2 = __toESM(require_github());
+var import_github3 = __toESM(require_github());
 async function getPR({ baseBranch, prBranch }) {
   try {
     const octokit = getGithubKit();
     const prList = await octokit.rest.pulls.list({
-      ...import_github2.context.repo,
+      ...import_github3.context.repo,
       state: "open"
     });
     return prList.data.find((pr) => pr.base.ref === baseBranch && pr.head.ref === prBranch);
@@ -7506,11 +7520,13 @@ async function createBumpPR({
   try {
     await (0, import_exec2.exec)("yarn changeset version");
     await (0, import_exec2.exec)(`git checkout -b ${prBranch}`);
+    await (0, import_exec2.exec)("git restore .changeset/config.json");
     await (0, import_exec2.exec)("git add .");
-    await (0, import_exec2.exec)("git reset .changeset/config.json");
     const version = getJson().version;
     if (!await canCommit())
       return;
+    const footNote = appendToReadme(prBranch);
+    await (0, import_exec2.exec)("git add .");
     await (0, import_exec2.exec)(`git commit -m "(chore) changeset bump to ${version}"`);
     await (0, import_exec2.exec)(`git push origin ${prBranch} --force`);
     const pr = await getPR({ baseBranch, prBranch });
@@ -7518,18 +7534,18 @@ async function createBumpPR({
     const octokit = getGithubKit();
     if (pr) {
       await octokit.rest.pulls.update({
-        ...import_github3.context.repo,
+        ...import_github4.context.repo,
         pull_number: pr.number,
         title,
-        body: getChangelogEntry(version) + "\n\nCreated by Github action."
+        body: getChangelogEntry(version) + footNote
       });
     } else {
       await octokit.rest.pulls.create({
-        ...import_github3.context.repo,
+        ...import_github4.context.repo,
         head: prBranch,
         base: baseBranch,
         title,
-        body: getChangelogEntry(version) + "\n\nCreated by Github action."
+        body: getChangelogEntry(version) + footNote
       });
     }
   } catch (e) {
@@ -7542,22 +7558,22 @@ var import_exec4 = __toESM(require_exec());
 
 // src/utils/setReleaseMode.ts
 var import_exec3 = __toESM(require_exec());
-var import_fs4 = require("fs");
+var import_fs5 = require("fs");
 
 // src/utils/updateChangesetConfig.ts
-var import_fs3 = require("fs");
+var import_fs4 = require("fs");
 function updateChangesetConfig({ branch = Env.thisBranch }) {
   const configFilePath = ".changeset/config.json";
   const config2 = getJson(configFilePath);
   config2.baseBranch = branch;
-  (0, import_fs3.writeFileSync)(configFilePath, JSON.stringify(config2, null, 2) + "\n");
+  (0, import_fs4.writeFileSync)(configFilePath, JSON.stringify(config2, null, 2) + "\n");
 }
 
 // src/utils/setReleaseMode.ts
 async function setReleaseMode({ forceExit = false } = {}) {
   updateChangesetConfig({ branch: forceExit ? "main" : Env.thisBranch });
   try {
-    const isInPreMode = (0, import_fs4.existsSync)("./.changeset/pre.json");
+    const isInPreMode = (0, import_fs5.existsSync)("./.changeset/pre.json");
     if (isInPreMode && (forceExit || Env.thisBranch === "main"))
       await (0, import_exec3.exec)(`yarn changeset pre exit`);
     if (!isInPreMode && !forceExit && Env.thisBranch === "dev")
@@ -7591,7 +7607,7 @@ function pipeLog(message) {
 
 // src/utils/prMainToNext.ts
 var import_exec5 = __toESM(require_exec());
-var import_github4 = __toESM(require_github());
+var import_github5 = __toESM(require_github());
 async function prMainToNext() {
   if (Env.thisBranch !== "main")
     return;
@@ -7601,10 +7617,12 @@ async function prMainToNext() {
     await (0, import_exec5.exec)("git reset --hard");
     await (0, import_exec5.exec)(`git checkout -b ${prBranch}`);
     await (0, import_exec5.exec)("yarn changeset pre enter next");
+    await (0, import_exec5.exec)("git restore .changeset/config.json");
     await (0, import_exec5.exec)("git add .");
-    await (0, import_exec5.exec)("git reset .changeset/config.json");
     if (!await canCommit())
       return;
+    const footNote = appendToReadme(prBranch);
+    await (0, import_exec5.exec)("git add .");
     await (0, import_exec5.exec)('git commit -m "prep main-to-next"');
     await (0, import_exec5.exec)(`git push origin ${prBranch} --force`);
     const pr = await getPR({ baseBranch, prBranch });
@@ -7612,11 +7630,11 @@ async function prMainToNext() {
       return;
     const octokit = getGithubKit();
     await octokit.rest.pulls.create({
-      ...import_github4.context.repo,
+      ...import_github5.context.repo,
       base: baseBranch,
       head: prBranch,
       title: ":arrow_down: (sync) merge `main` back into `next`",
-      body: "Created by Github action"
+      body: footNote
     });
   } catch (e) {
     catchErrorLog(e);
@@ -7625,7 +7643,7 @@ async function prMainToNext() {
 
 // src/utils/release.ts
 var import_exec6 = __toESM(require_exec());
-var import_github5 = __toESM(require_github());
+var import_github6 = __toESM(require_github());
 async function release() {
   const { version, name } = getJson();
   let npmReleased = false;
@@ -7645,7 +7663,7 @@ async function release() {
     const octokit = getGithubKit();
     try {
       await octokit.rest.repos.getReleaseByTag({
-        ...import_github5.context.repo,
+        ...import_github6.context.repo,
         tag: version
       });
     } catch (e) {
@@ -7653,7 +7671,7 @@ async function release() {
         throw e;
       console.log("tag does not exist, creating...");
       await octokit.rest.repos.createRelease({
-        ...import_github5.context.repo,
+        ...import_github6.context.repo,
         name: version,
         tag_name: version,
         body: getChangelogEntry(version),
@@ -7673,7 +7691,7 @@ else
   runCD();
 async function runPR() {
   const pre = ".changeset/pre.json";
-  const isPreRelease = (0, import_fs5.existsSync)(pre);
+  const isPreRelease = (0, import_fs6.existsSync)(pre);
   if (!isPreRelease && Env.thisPrBranch === "next") {
     throw new Error(`${pre} not found. Forgot to run \`yarn changeset pre enter next\`?`);
   }
