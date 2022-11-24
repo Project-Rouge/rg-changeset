@@ -7491,12 +7491,17 @@ async function setReleaseMode({ forceExit = false } = {}) {
   }
 }
 async function release() {
-  const version = getJson().version;
+  const { version, name } = getJson();
+  let npmReleased = false;
   try {
-    const publishedNpmVersions = await (0, import_exec.getExecOutput)(`npm view @project-rouge/rg-changeset-action version`);
-    if (!publishedNpmVersions.stdout.split("\n").includes(version)) {
+    const publishedNpmVersions = await (0, import_exec.getExecOutput)(`npm view ${name} version`);
+    npmReleased = publishedNpmVersions.stdout.split("\n").includes(version);
+  } catch (e) {
+    catchErrorLog(e);
+  }
+  try {
+    if (!npmReleased)
       await (0, import_exec.exec)("yarn changeset publish");
-    }
   } catch (e) {
     catchErrorLog(e);
   }
