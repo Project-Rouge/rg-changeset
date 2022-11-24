@@ -1,0 +1,17 @@
+node_modules
+.vscode
+.npmrc
+*.tgz
+yarn-error.log
+.*
+json-schema
+export.js
+jest.config.js
+rollup.config.js
+storybook-static
+dist
+vite.config.ts
+example
+.changeset
+.github
+.storybook

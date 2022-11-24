@@ -1,0 +1,28 @@
+name: cd
+on:
+  push:
+    branches: [next, main]
+jobs:
+  cd:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          registry-url: "https://registry.npmjs.org"
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - run: yarn build:local
+      - name: "rg-changeset-action"
+        id: "rg-changeset-action"
+        uses: ./dist/main.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
