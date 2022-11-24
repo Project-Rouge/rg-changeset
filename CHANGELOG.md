@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.0-next.1
+
+### Patch Changes
+
+- ddd963c: fix: skip if there is nothing to commit
+
 ## 0.1.0-next.0
 
 ### Minor Changes
