@@ -11,18 +11,12 @@ const thisPrBranch = process.env.GITHUB_BASE_REF as string;
 
 let _octokit: ReturnType<typeof getOctokit>;
 
-// if (thisPrBranch) runPR();
-// else runCD();
+if (thisPrBranch) runPR();
+else runCD();
 
 runPR()
 
 async function runPR() {
-
-  // delete from here
-  await release();
-  // delete to here
-
-
   const pre = '.changeset/pre.json';
   const isPreRelease = existsSync(pre);
   if (!isPreRelease && thisPrBranch === 'next') {
@@ -89,13 +83,22 @@ async function release() {
     const octokit = getGithubKit();
     const pkg = getJson();
 
-    await octokit.rest.repos.createRelease({
-      ...context.repo,
-      name: pkg.version,
-      tag_name: pkg.version,
-      body: getChangelogEntry(pkg.version),
-      prerelease: pkg.version.includes("-"),
-    })
+    try {
+      await octokit.rest.repos.getReleaseByTag({
+        ...context.repo,
+        tag: pkg.version,
+      })
+    } catch (e) {
+      if (e.status !== 404) throw e;
+      // if failed because tag does not exist, create it
+      await octokit.rest.repos.createRelease({
+        ...context.repo,
+        name: pkg.version,
+        tag_name: pkg.version,
+        body: getChangelogEntry(pkg.version),
+        prerelease: pkg.version.includes("-"),
+      })
+    }
 
   } catch (e) {
     catchErrorLog(e);
