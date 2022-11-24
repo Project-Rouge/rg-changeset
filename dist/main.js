@@ -7435,26 +7435,6 @@ var import_fs6 = require("fs");
 var import_exec2 = __toESM(require_exec());
 var import_github4 = __toESM(require_github());
 
-// src/utils/appendToReadme.ts
-var import_github = __toESM(require_github());
-var import_fs2 = require("fs");
-
-// src/utils/getJson.ts
-var import_fs = require("fs");
-function getJson(file = "./package.json") {
-  return JSON.parse((0, import_fs.readFileSync)(file, "utf-8"));
-}
-
-// src/utils/appendToReadme.ts
-function appendToReadme(branch) {
-  const pkg = getJson();
-  (0, import_fs2.appendFileSync)("./README.md", "\n\n:octocat: Created by github-bot. Delete this line to trigger PR actions");
-  const readmeLine = (0, import_fs2.readFileSync)("./README.md", "utf-8").split("\n").length;
-  return `
-
-:octocat: Delete [bot footnote](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/blob/${branch}/README.md?plain=1#L${readmeLine - 1}-L${readmeLine}) to trigger PR actions`;
-}
-
 // src/utils/canCommit.ts
 var import_exec = __toESM(require_exec());
 async function canCommit() {
@@ -7478,9 +7458,9 @@ var Env = {
 };
 
 // src/utils/getChangelogEntry.ts
-var import_fs3 = require("fs");
+var import_fs = require("fs");
 function getChangelogEntry(version) {
-  const changelog = (0, import_fs3.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
+  const changelog = (0, import_fs.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
   const start = 2 + changelog.indexOf(`## ${version}`);
   const end = start + 1 + changelog.slice(start + 1).findIndex((line) => line.startsWith("## "));
   const section = changelog.slice(start, end);
@@ -7488,27 +7468,50 @@ function getChangelogEntry(version) {
 }
 
 // src/utils/getGithubKit.ts
-var import_github2 = __toESM(require_github());
+var import_github = __toESM(require_github());
 var _octokit;
 function getGithubKit() {
   if (!_octokit)
-    _octokit = (0, import_github2.getOctokit)(process.env.GITHUB_TOKEN);
+    _octokit = (0, import_github.getOctokit)(process.env.GITHUB_TOKEN);
   return _octokit;
 }
 
+// src/utils/getJson.ts
+var import_fs2 = require("fs");
+function getJson(file = "./package.json") {
+  return JSON.parse((0, import_fs2.readFileSync)(file, "utf-8"));
+}
+
 // src/utils/getPR.ts
-var import_github3 = __toESM(require_github());
+var import_github2 = __toESM(require_github());
 async function getPR({ baseBranch, prBranch }) {
   try {
     const octokit = getGithubKit();
     const prList = await octokit.rest.pulls.list({
-      ...import_github3.context.repo,
+      ...import_github2.context.repo,
       state: "open"
     });
     return prList.data.find((pr) => pr.base.ref === baseBranch && pr.head.ref === prBranch);
   } catch (e) {
     catchErrorLog(e);
   }
+}
+
+// src/utils/prependToReadme.ts
+var import_github3 = __toESM(require_github());
+var import_fs3 = require("fs");
+function prependToReadme(branch) {
+  const readmePath = "./README.md";
+  let readme = (0, import_fs3.readFileSync)(readmePath, "utf-8");
+  if (!readme.startsWith(":octocat:")) {
+    readme = `:octocat: Created by github-bot. Delete this line to trigger PR actions
+
+${readme}`;
+    (0, import_fs3.writeFileSync)(readmePath, readme);
+  }
+  return `
+
+:octocat: Delete [bot note](https://github.com/${import_github3.context.repo.owner}/${import_github3.context.repo.repo}/edit/${branch}/README.md#L1-L2) to trigger PR actions`;
 }
 
 // src/utils/createBumpPR.ts
@@ -7526,7 +7529,7 @@ async function createBumpPR({
       console.log("nothing to commit.");
       return;
     }
-    const footNote = appendToReadme(prBranch);
+    const botNote = prependToReadme(prBranch);
     await (0, import_exec2.exec)("git add .");
     await (0, import_exec2.exec)(`git commit -m "(chore) changeset bump to ${version}"`);
     await (0, import_exec2.exec)(`git push origin ${prBranch} --force`);
@@ -7538,7 +7541,7 @@ async function createBumpPR({
         ...import_github4.context.repo,
         pull_number: pr.number,
         title,
-        body: getChangelogEntry(version) + footNote
+        body: getChangelogEntry(version) + botNote
       });
     } else {
       await octokit.rest.pulls.create({
@@ -7546,7 +7549,7 @@ async function createBumpPR({
         head: prBranch,
         base: baseBranch,
         title,
-        body: getChangelogEntry(version) + footNote
+        body: getChangelogEntry(version) + botNote
       });
     }
   } catch (e) {
@@ -7623,7 +7626,7 @@ async function prMainToNext() {
       console.log("nothing to commit.");
       return;
     }
-    const footNote = appendToReadme(prBranch);
+    const botNote = prependToReadme(prBranch);
     await (0, import_exec5.exec)("git add .");
     await (0, import_exec5.exec)('git commit -m "prep main-to-next"');
     await (0, import_exec5.exec)(`git push origin ${prBranch} --force`);
@@ -7636,7 +7639,7 @@ async function prMainToNext() {
       base: baseBranch,
       head: prBranch,
       title: ":arrow_down: (sync) merge `main` back into `next`",
-      body: footNote
+      body: botNote
     });
   } catch (e) {
     catchErrorLog(e);

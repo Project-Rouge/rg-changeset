@@ -1,7 +1,5 @@
 import { exec } from '@actions/exec';
 import { context } from '@actions/github';
-import { appendFileSync } from "fs";
-import { appendToReadme } from './appendToReadme';
 import { canCommit } from './canCommit';
 import { catchErrorLog } from "./catchErrorLog";
 import { Env } from './Env';
@@ -9,6 +7,7 @@ import { getChangelogEntry } from "./getChangelogEntry";
 import { getGithubKit } from "./getGithubKit";
 import { getJson } from "./getJson";
 import { getPR } from "./getPR";
+import { prependToReadme } from './prependToReadme';
 
 interface createBumpPRProps {
   prBranch?: string,
@@ -31,7 +30,7 @@ export async function createBumpPR({
       console.log('nothing to commit.');
       return;
     }
-    const footNote = appendToReadme(prBranch);
+    const botNote = prependToReadme(prBranch);
     await exec('git add .');
     await exec(`git commit -m "(chore) changeset bump to ${version}"`)
     await exec(`git push origin ${prBranch} --force`);
@@ -47,7 +46,7 @@ export async function createBumpPR({
         ...context.repo,
         pull_number: pr.number,
         title,
-        body: getChangelogEntry(version) + footNote
+        body: getChangelogEntry(version) + botNote
       })
     } else {
       await octokit.rest.pulls.create({
@@ -55,7 +54,7 @@ export async function createBumpPR({
         head: prBranch,
         base: baseBranch,
         title,
-        body: getChangelogEntry(version) + footNote
+        body: getChangelogEntry(version) + botNote
       })
     }
   } catch (e) {
