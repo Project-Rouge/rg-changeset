@@ -411,7 +411,7 @@ var require_io = __commonJS({
     var path = __importStar(require("path"));
     var util_1 = require("util");
     var ioUtil = __importStar(require_io_util());
-    var exec2 = util_1.promisify(childProcess.exec);
+    var exec6 = util_1.promisify(childProcess.exec);
     var execFile = util_1.promisify(childProcess.execFile);
     function cp(source, dest, options = {}) {
       return __awaiter(this, void 0, void 0, function* () {
@@ -470,11 +470,11 @@ var require_io = __commonJS({
           try {
             const cmdPath = ioUtil.getCmdPath();
             if (yield ioUtil.isDirectory(inputPath, true)) {
-              yield exec2(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
+              yield exec6(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
                 env: { inputPath }
               });
             } else {
-              yield exec2(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
+              yield exec6(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
                 env: { inputPath }
               });
             }
@@ -1170,7 +1170,7 @@ var require_exec = __commonJS({
     exports.getExecOutput = exports.exec = void 0;
     var string_decoder_1 = require("string_decoder");
     var tr = __importStar(require_toolrunner());
-    function exec2(commandLine, args, options) {
+    function exec6(commandLine, args, options) {
       return __awaiter(this, void 0, void 0, function* () {
         const commandArgs = tr.argStringToArray(commandLine);
         if (commandArgs.length === 0) {
@@ -1182,7 +1182,7 @@ var require_exec = __commonJS({
         return runner.exec();
       });
     }
-    exports.exec = exec2;
+    exports.exec = exec6;
     function getExecOutput2(commandLine, args, options) {
       var _a, _b;
       return __awaiter(this, void 0, void 0, function* () {
@@ -1205,7 +1205,7 @@ var require_exec = __commonJS({
           }
         };
         const listeners = Object.assign(Object.assign({}, options === null || options === void 0 ? void 0 : options.listeners), { stdout: stdOutListener, stderr: stdErrListener });
-        const exitCode = yield exec2(commandLine, args, Object.assign(Object.assign({}, options), { listeners }));
+        const exitCode = yield exec6(commandLine, args, Object.assign(Object.assign({}, options), { listeners }));
         stdout += stdoutDecoder.end();
         stderr += stderrDecoder.end();
         return {
@@ -2484,8 +2484,8 @@ var require_dist_node2 = __commonJS({
     function isKeyOperator(operator) {
       return operator === ";" || operator === "&" || operator === "?";
     }
-    function getValues(context2, operator, key, modifier) {
-      var value = context2[key], result = [];
+    function getValues(context5, operator, key, modifier) {
+      var value = context5[key], result = [];
       if (isDefined(value) && value !== "") {
         if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
           value = value.toString();
@@ -2545,7 +2545,7 @@ var require_dist_node2 = __commonJS({
         expand: expand.bind(null, template)
       };
     }
-    function expand(template, context2) {
+    function expand(template, context5) {
       var operators = ["+", "#", ".", "/", ";", "?", "&"];
       return template.replace(/\{([^\{\}]+)\}|([^\{\}]+)/g, function(_, expression, literal) {
         if (expression) {
@@ -2557,7 +2557,7 @@ var require_dist_node2 = __commonJS({
           }
           expression.split(/,/g).forEach(function(variable) {
             var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
-            values.push(getValues(context2, operator, tmp[1], tmp[2] || tmp[3]));
+            values.push(getValues(context5, operator, tmp[1], tmp[2] || tmp[3]));
           });
           if (operator && operator !== "+") {
             var separator = ",";
@@ -7428,24 +7428,238 @@ var require_github = __commonJS({
 
 // src/main.ts
 var import_dotenv = __toESM(require_main());
+var import_exec5 = __toESM(require_exec());
+var import_fs5 = require("fs");
+
+// src/utils/createBumpPR.ts
 var import_exec = __toESM(require_exec());
-var import_github = __toESM(require_github());
+var import_github3 = __toESM(require_github());
+
+// src/utils/catchErrorLog.ts
+function catchErrorLog(error) {
+  console.trace(`\u{1F41B}`);
+  console.log(error);
+  try {
+    console.log(JSON.stringify(error, null, 4));
+  } catch (error2) {
+  }
+}
+
+// src/utils/Env.ts
+var Env = {
+  thisBranch: process.env.GITHUB_REF_NAME,
+  thisPrBranch: process.env.GITHUB_BASE_REF
+};
+
+// src/utils/getChangelogEntry.ts
 var import_fs = require("fs");
-process.env.GITHUB_REF || (0, import_dotenv.config)();
-var thisBranch = process.env.GITHUB_REF_NAME;
-var thisPrBranch = process.env.GITHUB_BASE_REF;
+function getChangelogEntry(version) {
+  const changelog = (0, import_fs.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
+  const start = 2 + changelog.indexOf(`## ${version}`);
+  const end = start + 1 + changelog.slice(start + 1).findIndex((line) => line.startsWith("## "));
+  const section = changelog.slice(start, end);
+  return section.join("\n");
+}
+
+// src/utils/getGithubKit.ts
+var import_github = __toESM(require_github());
 var _octokit;
-if (thisPrBranch)
+function getGithubKit() {
+  if (!_octokit)
+    _octokit = (0, import_github.getOctokit)(process.env.GITHUB_TOKEN);
+  return _octokit;
+}
+
+// src/utils/getJson.ts
+var import_fs2 = require("fs");
+function getJson(file = "./package.json") {
+  return JSON.parse((0, import_fs2.readFileSync)(file, "utf-8"));
+}
+
+// src/utils/getPR.ts
+var import_github2 = __toESM(require_github());
+async function getPR({ baseBranch, prBranch }) {
+  try {
+    const octokit = getGithubKit();
+    const prList = await octokit.rest.pulls.list({
+      ...import_github2.context.repo,
+      state: "open"
+    });
+    return prList.data.find((pr) => pr.base.ref === baseBranch && pr.head.ref === prBranch);
+  } catch (e) {
+    catchErrorLog(e);
+  }
+}
+
+// src/utils/createBumpPR.ts
+async function createBumpPR({
+  prBranch = `release/${Env.thisBranch}-release`,
+  baseBranch = Env.thisBranch,
+  title = `Upcoming _version_ release (\`${baseBranch}\`)`
+}) {
+  try {
+    await (0, import_exec.exec)("yarn changeset version");
+    await (0, import_exec.exec)(`git checkout -b ${prBranch}`);
+    await (0, import_exec.exec)("git add .");
+    await (0, import_exec.exec)("git reset .changeset/config.json");
+    const version = getJson().version;
+    await (0, import_exec.exec)(`git commit -m "(chore) changeset bump to ${version}"`);
+    await (0, import_exec.exec)(`git push origin ${prBranch} --force`);
+    const pr = await getPR({ baseBranch, prBranch });
+    title = title.replace("_version_", `\`${version}\``);
+    const octokit = getGithubKit();
+    if (pr) {
+      await octokit.rest.pulls.update({
+        ...import_github3.context.repo,
+        pull_number: pr.number,
+        title,
+        body: getChangelogEntry(version) + "\n\nCreated by Github action."
+      });
+    } else {
+      await octokit.rest.pulls.create({
+        ...import_github3.context.repo,
+        head: prBranch,
+        base: baseBranch,
+        title,
+        body: getChangelogEntry(version) + "\n\nCreated by Github action."
+      });
+    }
+  } catch (e) {
+    catchErrorLog(e);
+  }
+}
+
+// src/utils/createNextToMainBumpPR.ts
+var import_exec3 = __toESM(require_exec());
+
+// src/utils/setReleaseMode.ts
+var import_exec2 = __toESM(require_exec());
+var import_fs4 = require("fs");
+
+// src/utils/updateChangesetConfig.ts
+var import_fs3 = require("fs");
+function updateChangesetConfig({ branch = Env.thisBranch }) {
+  const configFilePath = ".changeset/config.json";
+  const config2 = getJson(configFilePath);
+  config2.baseBranch = branch;
+  (0, import_fs3.writeFileSync)(configFilePath, JSON.stringify(config2, null, 2) + "\n");
+}
+
+// src/utils/setReleaseMode.ts
+async function setReleaseMode({ forceExit = false } = {}) {
+  updateChangesetConfig({ branch: forceExit ? "main" : Env.thisBranch });
+  try {
+    const isInPreMode = (0, import_fs4.existsSync)("./.changeset/pre.json");
+    if (isInPreMode && (forceExit || Env.thisBranch === "main"))
+      await (0, import_exec2.exec)(`yarn changeset pre exit`);
+    if (!isInPreMode && !forceExit && Env.thisBranch === "dev")
+      await (0, import_exec2.exec)(`yarn changeset pre enter next`);
+  } catch (e) {
+    catchErrorLog(e);
+  }
+}
+
+// src/utils/createNextToMainBumpPR.ts
+async function createNextToMainBumpPR() {
+  if (Env.thisBranch !== "next")
+    return;
+  try {
+    await (0, import_exec3.exec)("git reset --hard");
+    await setReleaseMode({ forceExit: true });
+    await createBumpPR({
+      prBranch: "release/next-to-main-release",
+      baseBranch: "main",
+      title: ":warning: Upcoming _version_ Release (`next` to `main`)"
+    });
+  } catch (e) {
+    catchErrorLog(e);
+  }
+}
+
+// src/utils/pipeLog.ts
+function pipeLog(message) {
+  console.log(`\u{1F33A} ${message}`);
+}
+
+// src/utils/prMainToNext.ts
+var import_github4 = __toESM(require_github());
+async function prMainToNext() {
+  if (Env.thisBranch !== "main")
+    return;
+  try {
+    const baseBranch = "next";
+    const prBranch = "main";
+    const pr = await getPR({ baseBranch, prBranch });
+    if (pr)
+      return;
+    const octokit = getGithubKit();
+    await octokit.rest.pulls.create({
+      ...import_github4.context.repo,
+      base: baseBranch,
+      head: prBranch,
+      title: ":arrow_down: (sync) merge `main` back into `next`",
+      body: "Created by Github action"
+    });
+  } catch (e) {
+    catchErrorLog(e);
+  }
+}
+
+// src/utils/release.ts
+var import_exec4 = __toESM(require_exec());
+var import_github5 = __toESM(require_github());
+async function release() {
+  const { version, name } = getJson();
+  let npmReleased = false;
+  try {
+    const publishedNpmVersions = await (0, import_exec4.getExecOutput)(`npm view ${name} version`);
+    npmReleased = publishedNpmVersions.stdout.split("\n").includes(version);
+  } catch (e) {
+    catchErrorLog(e);
+  }
+  try {
+    if (!npmReleased)
+      await (0, import_exec4.exec)("yarn changeset publish");
+  } catch (e) {
+    catchErrorLog(e);
+  }
+  try {
+    const octokit = getGithubKit();
+    try {
+      await octokit.rest.repos.getReleaseByTag({
+        ...import_github5.context.repo,
+        tag: version
+      });
+    } catch (e) {
+      if (e.status !== 404)
+        throw e;
+      console.log("tag does not exist, creating...");
+      await octokit.rest.repos.createRelease({
+        ...import_github5.context.repo,
+        name: version,
+        tag_name: version,
+        body: getChangelogEntry(version),
+        prerelease: version.includes("-")
+      });
+    }
+  } catch (e) {
+    catchErrorLog(e);
+  }
+}
+
+// src/main.ts
+process.env.GITHUB_REF || (0, import_dotenv.config)();
+if (Env.thisPrBranch)
   runPR();
 else
   runCD();
 async function runPR() {
   const pre = ".changeset/pre.json";
-  const isPreRelease = (0, import_fs.existsSync)(pre);
-  if (!isPreRelease && thisPrBranch === "next") {
+  const isPreRelease = (0, import_fs5.existsSync)(pre);
+  if (!isPreRelease && Env.thisPrBranch === "next") {
     throw new Error(`${pre} not found. Forgot to run \`yarn changeset pre enter next\`?`);
   }
-  if (isPreRelease && thisPrBranch === "main") {
+  if (isPreRelease && Env.thisPrBranch === "main") {
     throw new Error(`PR is in pre-release mode. Forgot to run \`yarn changeset pre exit\`?`);
   }
 }
@@ -7463,175 +7677,9 @@ async function runCD() {
   pipeLog("createNextToMainBumpPR");
   await createNextToMainBumpPR();
 }
-function pipeLog(message) {
-  console.log(`\u{1F33A} ${message}`);
-}
-function catchErrorLog(error) {
-  console.trace(`\u{1F41B}`);
-  console.log(error);
-  try {
-    console.log(JSON.stringify(error, null, 4));
-  } catch (error2) {
-  }
-}
 async function setGitConfig() {
-  await (0, import_exec.exec)("git config user.name github-actions");
-  await (0, import_exec.exec)("git config user.email github-actions@github.com");
-}
-async function setReleaseMode({ forceExit = false } = {}) {
-  updateChangesetConfig({ branch: forceExit ? "main" : thisBranch });
-  try {
-    const isInPreMode = (0, import_fs.existsSync)("./.changeset/pre.json");
-    if (isInPreMode && (forceExit || thisBranch === "main"))
-      await (0, import_exec.exec)(`yarn changeset pre exit`);
-    if (!isInPreMode && !forceExit && thisBranch === "dev")
-      await (0, import_exec.exec)(`yarn changeset pre enter next`);
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-async function release() {
-  const { version, name } = getJson();
-  let npmReleased = false;
-  try {
-    const publishedNpmVersions = await (0, import_exec.getExecOutput)(`npm view ${name} version`);
-    npmReleased = publishedNpmVersions.stdout.split("\n").includes(version);
-  } catch (e) {
-    catchErrorLog(e);
-  }
-  try {
-    if (!npmReleased)
-      await (0, import_exec.exec)("yarn changeset publish");
-  } catch (e) {
-    catchErrorLog(e);
-  }
-  try {
-    const octokit = getGithubKit();
-    try {
-      await octokit.rest.repos.getReleaseByTag({
-        ...import_github.context.repo,
-        tag: version
-      });
-    } catch (e) {
-      if (e.status !== 404)
-        throw e;
-      console.log("tag does not exist, creating...");
-      await octokit.rest.repos.createRelease({
-        ...import_github.context.repo,
-        name: version,
-        tag_name: version,
-        body: getChangelogEntry(version),
-        prerelease: version.includes("-")
-      });
-    }
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-async function prMainToNext() {
-  if (thisBranch !== "main")
-    return;
-  try {
-    const baseBranch = "next";
-    const prBranch = "main";
-    const pr = await getPR({ baseBranch, prBranch });
-    if (pr)
-      return;
-    const octokit = getGithubKit();
-    await octokit.rest.pulls.create({
-      ...import_github.context.repo,
-      base: baseBranch,
-      head: prBranch,
-      title: ":arrow_down: (sync) merge `main` back into `next`",
-      body: "Created by Github action"
-    });
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-async function getPR({ baseBranch, prBranch }) {
-  try {
-    const octokit = getGithubKit();
-    const prList = await octokit.rest.pulls.list({
-      ...import_github.context.repo,
-      state: "open"
-    });
-    return prList.data.find((pr) => pr.base.ref === baseBranch && pr.head.ref === prBranch);
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-async function createBumpPR({
-  prBranch = `release/${thisBranch}-release`,
-  baseBranch = thisBranch,
-  title = `Upcoming _version_ release (\`${baseBranch}\`)`
-}) {
-  try {
-    await (0, import_exec.exec)("yarn changeset version");
-    await (0, import_exec.exec)(`git checkout -b ${prBranch}`);
-    await (0, import_exec.exec)("git add .");
-    await (0, import_exec.exec)("git reset .changeset/config.json");
-    const version = getJson().version;
-    await (0, import_exec.exec)(`git commit -m "(chore) changeset bump to ${version}"`);
-    await (0, import_exec.exec)(`git push origin ${prBranch} --force`);
-    const pr = await getPR({ baseBranch, prBranch });
-    title = title.replace("_version_", `\`${version}\``);
-    const octokit = getGithubKit();
-    if (pr) {
-      await octokit.rest.pulls.update({
-        ...import_github.context.repo,
-        pull_number: pr.number,
-        title,
-        body: getChangelogEntry(version) + "\n\nCreated by Github action."
-      });
-    } else {
-      await octokit.rest.pulls.create({
-        ...import_github.context.repo,
-        head: prBranch,
-        base: baseBranch,
-        title,
-        body: getChangelogEntry(version) + "\n\nCreated by Github action."
-      });
-    }
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-async function createNextToMainBumpPR() {
-  if (thisBranch !== "next")
-    return;
-  try {
-    await (0, import_exec.exec)("git reset --hard");
-    await setReleaseMode({ forceExit: true });
-    await createBumpPR({
-      prBranch: "release/next-to-main-release",
-      baseBranch: "main",
-      title: ":warning: Upcoming _version_ Release (`next` to `main`)"
-    });
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-function getJson(file = "./package.json") {
-  return JSON.parse((0, import_fs.readFileSync)(file, "utf-8"));
-}
-function updateChangesetConfig({ branch = thisBranch }) {
-  const configFilePath = ".changeset/config.json";
-  const config2 = getJson(configFilePath);
-  config2.baseBranch = branch;
-  (0, import_fs.writeFileSync)(configFilePath, JSON.stringify(config2, null, 2) + "\n");
-}
-function getChangelogEntry(version) {
-  const changelog = (0, import_fs.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
-  const start = 2 + changelog.indexOf(`## ${version}`);
-  const end = start + 1 + changelog.slice(start + 1).findIndex((line) => line.startsWith("## "));
-  const section = changelog.slice(start, end);
-  return section.join("\n");
-}
-function getGithubKit() {
-  if (!_octokit)
-    _octokit = (0, import_github.getOctokit)(process.env.GITHUB_TOKEN);
-  return _octokit;
+  await (0, import_exec5.exec)("git config user.name github-actions");
+  await (0, import_exec5.exec)("git config user.email github-actions@github.com");
 }
 /*!
  * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
