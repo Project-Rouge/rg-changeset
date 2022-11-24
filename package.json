@@ -16,6 +16,7 @@
     "dotenv": "^16.0.3"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.25.2",
     "@types/node": "^18.11.9",
     "esbuild": "^0.15.15"
   }
