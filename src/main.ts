@@ -15,6 +15,21 @@ if (thisPrBranch) runPR();
 else runCD();
 
 async function runPR() {
+
+  // delete from here
+
+  try {
+    const tags = await getGithubKit().rest.repos.getReleaseByTag({
+      ...context.repo,
+      tag: getJson().version,
+    })
+  } catch (e) {
+    catchErrorLog(e);
+  }
+
+  // delete to here
+
+
   const pre = '.changeset/pre.json';
   const isPreRelease = existsSync(pre);
   if (!isPreRelease && thisPrBranch === 'next') {

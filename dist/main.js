@@ -7440,6 +7440,14 @@ if (thisPrBranch)
 else
   runCD();
 async function runPR() {
+  try {
+    const tags = await getGithubKit().rest.repos.getReleaseByTag({
+      ...import_github.context.repo,
+      tag: getJson().version
+    });
+  } catch (e) {
+    catchErrorLog(e);
+  }
   const pre = ".changeset/pre.json";
   const isPreRelease = (0, import_fs.existsSync)(pre);
   if (!isPreRelease && thisPrBranch === "next") {
