@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.0-next.0
+
+### Minor Changes
+
+- 43beb6b: Sync PR to update next with main now includes pre mode
+
 ## 0.0.2
 
 ### Patch Changes
