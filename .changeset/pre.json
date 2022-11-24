@@ -5,6 +5,7 @@
     "@project-rouge/rg-changeset-action": "0.0.2"
   },
   "changesets": [
+    "hot-games-divide",
     "rare-socks-joke"
   ]
 }
