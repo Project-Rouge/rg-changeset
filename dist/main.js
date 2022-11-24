@@ -7452,7 +7452,7 @@ function appendToReadme(branch) {
   const readmeLine = (0, import_fs2.readFileSync)("./README.md", "utf-8").split("\n").length;
   return `
 
-Delete [bot footnote](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/blob/${branch}/README.md?plain=1#L25) line to trigger PR actions`;
+:octocat: Delete [bot footnote](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/blob/${branch}/README.md?plain=1#L${readmeLine - 1}-L${readmeLine}) to trigger PR actions`;
 }
 
 // src/utils/canCommit.ts
