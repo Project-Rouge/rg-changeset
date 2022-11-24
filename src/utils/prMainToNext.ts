@@ -1,3 +1,4 @@
+import { exec } from '@actions/exec';
 import { context } from '@actions/github';
 import { catchErrorLog } from "./catchErrorLog";
 import { Env } from './Env';
@@ -9,8 +10,17 @@ export async function prMainToNext() {
   if (Env.thisBranch !== 'main')
     return;
   try {
+
     const baseBranch = 'next';
-    const prBranch = 'main';
+    const prBranch = 'sync/main-to-next';
+
+    await exec('git reset --hard');
+    await exec(`git checkout -b ${prBranch}`);
+    await exec('yarn changeset pre enter next');
+    await exec('git add .');
+    await exec('git reset .changeset/config.json');
+    await exec('git commit -m "prep main-to-next"')
+    await exec(`git push origin ${prBranch} --force`);
     const pr = await getPR({ baseBranch, prBranch });
     if (pr)
       return;

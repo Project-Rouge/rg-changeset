@@ -411,7 +411,7 @@ var require_io = __commonJS({
     var path = __importStar(require("path"));
     var util_1 = require("util");
     var ioUtil = __importStar(require_io_util());
-    var exec6 = util_1.promisify(childProcess.exec);
+    var exec7 = util_1.promisify(childProcess.exec);
     var execFile = util_1.promisify(childProcess.execFile);
     function cp(source, dest, options = {}) {
       return __awaiter(this, void 0, void 0, function* () {
@@ -470,11 +470,11 @@ var require_io = __commonJS({
           try {
             const cmdPath = ioUtil.getCmdPath();
             if (yield ioUtil.isDirectory(inputPath, true)) {
-              yield exec6(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
+              yield exec7(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
                 env: { inputPath }
               });
             } else {
-              yield exec6(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
+              yield exec7(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
                 env: { inputPath }
               });
             }
@@ -1170,7 +1170,7 @@ var require_exec = __commonJS({
     exports.getExecOutput = exports.exec = void 0;
     var string_decoder_1 = require("string_decoder");
     var tr = __importStar(require_toolrunner());
-    function exec6(commandLine, args, options) {
+    function exec7(commandLine, args, options) {
       return __awaiter(this, void 0, void 0, function* () {
         const commandArgs = tr.argStringToArray(commandLine);
         if (commandArgs.length === 0) {
@@ -1182,7 +1182,7 @@ var require_exec = __commonJS({
         return runner.exec();
       });
     }
-    exports.exec = exec6;
+    exports.exec = exec7;
     function getExecOutput2(commandLine, args, options) {
       var _a, _b;
       return __awaiter(this, void 0, void 0, function* () {
@@ -1205,7 +1205,7 @@ var require_exec = __commonJS({
           }
         };
         const listeners = Object.assign(Object.assign({}, options === null || options === void 0 ? void 0 : options.listeners), { stdout: stdOutListener, stderr: stdErrListener });
-        const exitCode = yield exec6(commandLine, args, Object.assign(Object.assign({}, options), { listeners }));
+        const exitCode = yield exec7(commandLine, args, Object.assign(Object.assign({}, options), { listeners }));
         stdout += stdoutDecoder.end();
         stderr += stderrDecoder.end();
         return {
@@ -7428,7 +7428,7 @@ var require_github = __commonJS({
 
 // src/main.ts
 var import_dotenv = __toESM(require_main());
-var import_exec5 = __toESM(require_exec());
+var import_exec6 = __toESM(require_exec());
 var import_fs5 = require("fs");
 
 // src/utils/createBumpPR.ts
@@ -7582,13 +7582,21 @@ function pipeLog(message) {
 }
 
 // src/utils/prMainToNext.ts
+var import_exec4 = __toESM(require_exec());
 var import_github4 = __toESM(require_github());
 async function prMainToNext() {
   if (Env.thisBranch !== "main")
     return;
   try {
     const baseBranch = "next";
-    const prBranch = "main";
+    const prBranch = "sync/main-to-next";
+    await (0, import_exec4.exec)("git reset --hard");
+    await (0, import_exec4.exec)(`git checkout -b ${prBranch}`);
+    await (0, import_exec4.exec)("yarn changeset pre enter next");
+    await (0, import_exec4.exec)("git add .");
+    await (0, import_exec4.exec)("git reset .changeset/config.json");
+    await (0, import_exec4.exec)('git commit -m "prep main-to-next"');
+    await (0, import_exec4.exec)(`git push origin ${prBranch} --force`);
     const pr = await getPR({ baseBranch, prBranch });
     if (pr)
       return;
@@ -7606,20 +7614,20 @@ async function prMainToNext() {
 }
 
 // src/utils/release.ts
-var import_exec4 = __toESM(require_exec());
+var import_exec5 = __toESM(require_exec());
 var import_github5 = __toESM(require_github());
 async function release() {
   const { version, name } = getJson();
   let npmReleased = false;
   try {
-    const publishedNpmVersions = await (0, import_exec4.getExecOutput)(`npm view ${name} version`);
+    const publishedNpmVersions = await (0, import_exec5.getExecOutput)(`npm view ${name} version`);
     npmReleased = publishedNpmVersions.stdout.split("\n").includes(version);
   } catch (e) {
     catchErrorLog(e);
   }
   try {
     if (!npmReleased)
-      await (0, import_exec4.exec)("yarn changeset publish");
+      await (0, import_exec5.exec)("yarn changeset publish");
   } catch (e) {
     catchErrorLog(e);
   }
@@ -7678,8 +7686,8 @@ async function runCD() {
   await createNextToMainBumpPR();
 }
 async function setGitConfig() {
-  await (0, import_exec5.exec)("git config user.name github-actions");
-  await (0, import_exec5.exec)("git config user.email github-actions@github.com");
+  await (0, import_exec6.exec)("git config user.name github-actions");
+  await (0, import_exec6.exec)("git config user.email github-actions@github.com");
 }
 /*!
  * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
