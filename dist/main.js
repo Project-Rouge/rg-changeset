@@ -7467,7 +7467,7 @@ function pipeLog(message) {
   console.log(`\u{1F33A} ${message}`);
 }
 function catchErrorLog(error) {
-  console.log(`\u{1F41B}`);
+  console.trace(`\u{1F41B}`);
   console.log(error);
   try {
     console.log(JSON.stringify(error, null, 4));

@@ -7,7 +7,6 @@
   "description": "Github action to handle changesets in rg-suite",
   "main": "dist/main.js",
   "scripts": {
-    "build:local": "esbuild src/main.ts --platform=node --target=node16 --outfile=dist/main.mjs",
     "build": "esbuild src/main.ts --bundle --platform=node --target=node16 --outfile=dist/main.js"
   },
   "dependencies": {

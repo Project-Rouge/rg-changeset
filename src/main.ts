@@ -52,7 +52,7 @@ function pipeLog(message: string) {
 }
 
 function catchErrorLog(error: any) {
-  console.log(`🐛`);
+  console.trace(`🐛`);
   console.log(error);
   try { console.log(JSON.stringify(error, null, 4)); } catch (error) { }
 }
