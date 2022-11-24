@@ -7437,19 +7437,7 @@ var thisPrBranch = process.env.GITHUB_BASE_REF;
 var _octokit;
 runPR();
 async function runPR() {
-  try {
-    const pkg = getJson();
-    console.log(`version :::: ${pkg.version}`);
-    await getGithubKit().rest.repos.createRelease({
-      ...import_github.context.repo,
-      name: pkg.version,
-      tag_name: pkg.version,
-      body: getChangelogEntry(pkg.version),
-      prerelease: pkg.version.includes("-")
-    });
-  } catch (e) {
-    catchErrorLog(e);
-  }
+  await release();
   const pre = ".changeset/pre.json";
   const isPreRelease = (0, import_fs.existsSync)(pre);
   if (!isPreRelease && thisPrBranch === "next") {
@@ -7465,6 +7453,30 @@ function catchErrorLog(error) {
   try {
     console.log(JSON.stringify(error, null, 4));
   } catch (error2) {
+  }
+}
+async function release() {
+  try {
+    await (0, import_exec.exec)("yarn changeset publish");
+    const octokit = getGithubKit();
+    const pkg = getJson();
+    try {
+      octokit.rest.repos.getReleaseByTag({
+        ...import_github.context.repo,
+        tag: pkg.version
+      });
+    } catch (e) {
+      catchErrorLog(e);
+      await octokit.rest.repos.createRelease({
+        ...import_github.context.repo,
+        name: pkg.version,
+        tag_name: pkg.version,
+        body: getChangelogEntry(pkg.version),
+        prerelease: pkg.version.includes("-")
+      });
+    }
+  } catch (e) {
+    catchErrorLog(e);
   }
 }
 function getJson(file = "./package.json") {

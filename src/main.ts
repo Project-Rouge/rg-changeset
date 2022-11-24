@@ -19,26 +19,7 @@ runPR()
 async function runPR() {
 
   // delete from here
-
-  try {
-    // const tags = await getGithubKit().rest.repos.getReleaseByTag({
-    //   ...context.repo,
-    //   tag: getJson().version,
-    // })
-    const pkg = getJson();
-    console.log(`version :::: ${pkg.version}`);
-    
-    await getGithubKit().rest.repos.createRelease({
-      ...context.repo,
-      name: pkg.version,
-      tag_name: pkg.version,
-      body: getChangelogEntry(pkg.version),
-      prerelease: pkg.version.includes("-"),
-    })
-  } catch (e) {
-    catchErrorLog(e);
-  }
-
+  await release();
   // delete to here
 
 
