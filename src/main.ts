@@ -89,22 +89,30 @@ async function release() {
     const octokit = getGithubKit();
     const pkg = getJson();
 
-    try {
-      octokit.rest.repos.getReleaseByTag({
-        ...context.repo,
-        tag: pkg.version,
-      })
-    } catch (e) {
-      catchErrorLog(e);
-      // probably failed because tag does not exist, so create it
-      await octokit.rest.repos.createRelease({
-        ...context.repo,
-        name: pkg.version,
-        tag_name: pkg.version,
-        body: getChangelogEntry(pkg.version),
-        prerelease: pkg.version.includes("-"),
-      })
-    }
+    await octokit.rest.repos.createRelease({
+      ...context.repo,
+      name: pkg.version,
+      tag_name: pkg.version,
+      body: getChangelogEntry(pkg.version),
+      prerelease: pkg.version.includes("-"),
+    })
+
+    // try {
+    //   octokit.rest.repos.getReleaseByTag({
+    //     ...context.repo,
+    //     tag: pkg.version,
+    //   })
+    // } catch (e) {
+    //   catchErrorLog(e);
+    //   // probably failed because tag does not exist, so create it
+    //   await octokit.rest.repos.createRelease({
+    //     ...context.repo,
+    //     name: pkg.version,
+    //     tag_name: pkg.version,
+    //     body: getChangelogEntry(pkg.version),
+    //     prerelease: pkg.version.includes("-"),
+    //   })
+    // }
 
   } catch (e) {
     catchErrorLog(e);
