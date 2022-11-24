@@ -1,5 +1,39 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.0
+
+### Minor Changes
+
+- c1debfc: add line to be deleted to trigger PR actions
+- 43beb6b: Sync PR to update next with main now includes pre mode
+
+### Patch Changes
+
+- ddd963c: fix: skip if there is nothing to commit
+- 0d1f18a: chore: remove noisy logs
+
+## 0.1.0-next.2
+
+### Minor Changes
+
+- c1debfc: add line to be deleted to trigger PR actions
+
+### Patch Changes
+
+- 0d1f18a: chore: remove noisy logs
+
+## 0.1.0-next.1
+
+### Patch Changes
+
+- ddd963c: fix: skip if there is nothing to commit
+
+## 0.1.0-next.0
+
+### Minor Changes
+
+- 43beb6b: Sync PR to update next with main now includes pre mode
+
 ## 0.0.2
 
 ### Patch Changes
