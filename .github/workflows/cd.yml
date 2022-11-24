@@ -19,8 +19,6 @@ jobs:
           node-version: "16"
           registry-url: "https://registry.npmjs.org"
       - run: yarn install --frozen-lockfile
-      - run: yarn build
-      - run: yarn build:local
       - name: "rg-changeset-action"
         id: "rg-changeset-action"
         uses: ./
