@@ -1183,7 +1183,7 @@ var require_exec = __commonJS({
       });
     }
     exports.exec = exec7;
-    function getExecOutput2(commandLine, args, options) {
+    function getExecOutput3(commandLine, args, options) {
       var _a, _b;
       return __awaiter(this, void 0, void 0, function* () {
         let stdout = "";
@@ -1215,7 +1215,7 @@ var require_exec = __commonJS({
         };
       });
     }
-    exports.getExecOutput = getExecOutput2;
+    exports.getExecOutput = getExecOutput3;
   }
 });
 
@@ -7428,12 +7428,18 @@ var require_github = __commonJS({
 
 // src/main.ts
 var import_dotenv = __toESM(require_main());
-var import_exec6 = __toESM(require_exec());
+var import_exec7 = __toESM(require_exec());
 var import_fs5 = require("fs");
 
 // src/utils/createBumpPR.ts
-var import_exec = __toESM(require_exec());
+var import_exec2 = __toESM(require_exec());
 var import_github3 = __toESM(require_github());
+
+// src/utils/canCommit.ts
+var import_exec = __toESM(require_exec());
+async function canCommit() {
+  return (await (0, import_exec.getExecOutput)("git diff")).stdout.trim().length !== 0;
+}
 
 // src/utils/catchErrorLog.ts
 function catchErrorLog(error) {
@@ -7498,13 +7504,15 @@ async function createBumpPR({
   title = `Upcoming _version_ release (\`${baseBranch}\`)`
 }) {
   try {
-    await (0, import_exec.exec)("yarn changeset version");
-    await (0, import_exec.exec)(`git checkout -b ${prBranch}`);
-    await (0, import_exec.exec)("git add .");
-    await (0, import_exec.exec)("git reset .changeset/config.json");
+    await (0, import_exec2.exec)("yarn changeset version");
+    await (0, import_exec2.exec)(`git checkout -b ${prBranch}`);
+    await (0, import_exec2.exec)("git add .");
+    await (0, import_exec2.exec)("git reset .changeset/config.json");
     const version = getJson().version;
-    await (0, import_exec.exec)(`git commit -m "(chore) changeset bump to ${version}"`);
-    await (0, import_exec.exec)(`git push origin ${prBranch} --force`);
+    if (!await canCommit())
+      return;
+    await (0, import_exec2.exec)(`git commit -m "(chore) changeset bump to ${version}"`);
+    await (0, import_exec2.exec)(`git push origin ${prBranch} --force`);
     const pr = await getPR({ baseBranch, prBranch });
     title = title.replace("_version_", `\`${version}\``);
     const octokit = getGithubKit();
@@ -7530,10 +7538,10 @@ async function createBumpPR({
 }
 
 // src/utils/createNextToMainBumpPR.ts
-var import_exec3 = __toESM(require_exec());
+var import_exec4 = __toESM(require_exec());
 
 // src/utils/setReleaseMode.ts
-var import_exec2 = __toESM(require_exec());
+var import_exec3 = __toESM(require_exec());
 var import_fs4 = require("fs");
 
 // src/utils/updateChangesetConfig.ts
@@ -7551,9 +7559,9 @@ async function setReleaseMode({ forceExit = false } = {}) {
   try {
     const isInPreMode = (0, import_fs4.existsSync)("./.changeset/pre.json");
     if (isInPreMode && (forceExit || Env.thisBranch === "main"))
-      await (0, import_exec2.exec)(`yarn changeset pre exit`);
+      await (0, import_exec3.exec)(`yarn changeset pre exit`);
     if (!isInPreMode && !forceExit && Env.thisBranch === "dev")
-      await (0, import_exec2.exec)(`yarn changeset pre enter next`);
+      await (0, import_exec3.exec)(`yarn changeset pre enter next`);
   } catch (e) {
     catchErrorLog(e);
   }
@@ -7564,7 +7572,7 @@ async function createNextToMainBumpPR() {
   if (Env.thisBranch !== "next")
     return;
   try {
-    await (0, import_exec3.exec)("git reset --hard");
+    await (0, import_exec4.exec)("git reset --hard");
     await setReleaseMode({ forceExit: true });
     await createBumpPR({
       prBranch: "release/next-to-main-release",
@@ -7582,7 +7590,7 @@ function pipeLog(message) {
 }
 
 // src/utils/prMainToNext.ts
-var import_exec4 = __toESM(require_exec());
+var import_exec5 = __toESM(require_exec());
 var import_github4 = __toESM(require_github());
 async function prMainToNext() {
   if (Env.thisBranch !== "main")
@@ -7590,13 +7598,15 @@ async function prMainToNext() {
   try {
     const baseBranch = "next";
     const prBranch = "sync/main-to-next";
-    await (0, import_exec4.exec)("git reset --hard");
-    await (0, import_exec4.exec)(`git checkout -b ${prBranch}`);
-    await (0, import_exec4.exec)("yarn changeset pre enter next");
-    await (0, import_exec4.exec)("git add .");
-    await (0, import_exec4.exec)("git reset .changeset/config.json");
-    await (0, import_exec4.exec)('git commit -m "prep main-to-next"');
-    await (0, import_exec4.exec)(`git push origin ${prBranch} --force`);
+    await (0, import_exec5.exec)("git reset --hard");
+    await (0, import_exec5.exec)(`git checkout -b ${prBranch}`);
+    await (0, import_exec5.exec)("yarn changeset pre enter next");
+    await (0, import_exec5.exec)("git add .");
+    await (0, import_exec5.exec)("git reset .changeset/config.json");
+    if (!await canCommit())
+      return;
+    await (0, import_exec5.exec)('git commit -m "prep main-to-next"');
+    await (0, import_exec5.exec)(`git push origin ${prBranch} --force`);
     const pr = await getPR({ baseBranch, prBranch });
     if (pr)
       return;
@@ -7614,20 +7624,20 @@ async function prMainToNext() {
 }
 
 // src/utils/release.ts
-var import_exec5 = __toESM(require_exec());
+var import_exec6 = __toESM(require_exec());
 var import_github5 = __toESM(require_github());
 async function release() {
   const { version, name } = getJson();
   let npmReleased = false;
   try {
-    const publishedNpmVersions = await (0, import_exec5.getExecOutput)(`npm view ${name} version`);
+    const publishedNpmVersions = await (0, import_exec6.getExecOutput)(`npm view ${name} version`);
     npmReleased = publishedNpmVersions.stdout.split("\n").includes(version);
   } catch (e) {
     catchErrorLog(e);
   }
   try {
     if (!npmReleased)
-      await (0, import_exec5.exec)("yarn changeset publish");
+      await (0, import_exec6.exec)("yarn changeset publish");
   } catch (e) {
     catchErrorLog(e);
   }
@@ -7686,8 +7696,8 @@ async function runCD() {
   await createNextToMainBumpPR();
 }
 async function setGitConfig() {
-  await (0, import_exec6.exec)("git config user.name github-actions");
-  await (0, import_exec6.exec)("git config user.email github-actions@github.com");
+  await (0, import_exec7.exec)("git config user.name github-actions");
+  await (0, import_exec7.exec)("git config user.email github-actions@github.com");
 }
 /*!
  * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
