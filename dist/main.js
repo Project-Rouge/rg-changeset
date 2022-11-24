@@ -7460,13 +7460,21 @@ async function release() {
     await (0, import_exec.exec)("yarn changeset publish");
     const octokit = getGithubKit();
     const pkg = getJson();
-    await octokit.rest.repos.createRelease({
-      ...import_github.context.repo,
-      name: pkg.version,
-      tag_name: pkg.version,
-      body: getChangelogEntry(pkg.version),
-      prerelease: pkg.version.includes("-")
-    });
+    try {
+      octokit.rest.repos.getReleaseByTag({
+        ...import_github.context.repo,
+        tag: pkg.version
+      });
+    } catch (e) {
+      catchErrorLog(e);
+      await octokit.rest.repos.createRelease({
+        ...import_github.context.repo,
+        name: pkg.version,
+        tag_name: pkg.version,
+        body: getChangelogEntry(pkg.version),
+        prerelease: pkg.version.includes("-")
+      });
+    }
   } catch (e) {
     catchErrorLog(e);
   }
