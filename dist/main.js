@@ -7488,7 +7488,7 @@ var import_exec2 = __toESM(require_exec());
 async function upsertBranch({ sourceBranch, prBranch }) {
   await (0, import_exec2.exec)("git reset --hard");
   await (0, import_exec2.exec)(`git checkout ${sourceBranch}`);
-  await (0, import_exec2.exec)(`git checkout -b ${prBranch}`);
+  await (0, import_exec2.exec)(`git checkout -B ${prBranch}`);
   await (0, import_exec2.exec)(`git merge ${sourceBranch} --no-edit --no-commit`);
 }
 
