@@ -7587,7 +7587,7 @@ async function canCommit() {
   return await didChange("git diff --name-only") || await didChange("git ls-files -o --exclude-standard");
 }
 async function didChange(command) {
-  const newFiles = (await (0, import_exec4.getExecOutput)(command, [], { silent: true })).stdout.trim().split("\n").filter((v) => v && v !== "./changeset/pre.json");
+  const newFiles = (await (0, import_exec4.getExecOutput)(command, [], { silent: true })).stdout.trim().split("\n").filter((v) => v && v !== ".changeset/pre.json");
   return newFiles.length > 0;
 }
 
