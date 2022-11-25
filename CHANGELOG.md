@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.2.0-next.0
+
+### Minor Changes
+
+- 74e4551: add delete me file
+
 ## 0.1.8
 
 ### Patch Changes
