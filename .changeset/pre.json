@@ -5,6 +5,7 @@
     "@project-rouge/rg-changeset-action": "0.1.8"
   },
   "changesets": [
-    "fresh-boats-visit"
+    "fresh-boats-visit",
+    "spicy-cooks-rest"
   ]
 }

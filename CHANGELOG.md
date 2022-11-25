@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.2.0-next.1
+
+### Patch Changes
+
+- 6ec7a59: tweak: bot message
+
 ## 0.2.0-next.0
 
 ### Minor Changes
