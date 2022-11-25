@@ -1,12 +1,11 @@
-import { exec } from '@actions/exec';
 import { canCommit } from './canCommit';
 import { catchErrorLog } from "./catchErrorLog";
+import { commitAndPush } from './commitAndPush';
 import { getJson } from './getJson';
 import { prependToReadme } from './prependToReadme';
-import { upsertBranch } from './upsertPrBranch';
 import { setReleaseMode } from './setReleaseMode';
 import { upsertPr } from './upsertPr';
-import { commitAndPush } from './commitAndPush';
+import { upsertBranch } from './upsertPrBranch';
 
 /** create a PR from `main` to `next` (if possible) */
 export async function prMainToNext() {
