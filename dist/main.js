@@ -7490,11 +7490,13 @@ function getGithubKit() {
 async function getPR({ baseBranch, prBranch }) {
   try {
     const octokit = getGithubKit();
-    const prList = await octokit.rest.pulls.list({
+    let pr = (await octokit.rest.pulls.list({
       ...import_github3.context.repo,
-      state: "open"
-    });
-    return prList.data.find((pr) => pr.base.ref === baseBranch && pr.head.ref === prBranch);
+      state: "open",
+      base: baseBranch,
+      head: prBranch
+    })).data[0];
+    return pr;
   } catch (e) {
     catchErrorLog(e);
   }
@@ -7504,7 +7506,7 @@ async function getPR({ baseBranch, prBranch }) {
 async function hasPrDeleteMeMessage({ baseBranch, prBranch }) {
   const pr = await getPR({ baseBranch, prBranch });
   const message = deleteMeMessage(prBranch);
-  return pr.body.includes(message);
+  return (pr.body || "").includes(message);
 }
 
 // src/utils/upsertPr.ts

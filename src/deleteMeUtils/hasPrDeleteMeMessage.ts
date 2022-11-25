@@ -8,6 +8,6 @@ export async function hasPrDeleteMeMessage({ baseBranch, prBranch }: { baseBranc
 
   const message = deleteMeMessage(prBranch);
 
-  return pr.body!.includes(message);
+  return (pr.body || '').includes(message);
 
 }
