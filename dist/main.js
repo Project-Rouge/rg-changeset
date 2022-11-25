@@ -7441,10 +7441,13 @@ var import_fs = require("fs");
 
 // src/deleteMeUtils/deleteMePrMessage.ts
 var import_github = __toESM(require_github());
-function deleteMeMessage(branch) {
+function deleteMeMessage(branch, onlyMainMessage = false) {
+  const mainMessage = `:octocat: Delete [bot note](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/blob/${branch}/${deleteFile}) before merging.`;
+  if (onlyMainMessage)
+    return mainMessage;
   return [
     "\n\n:warning::warning::warning:",
-    `:octocat: Delete [bot note](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/blob/${branch}/${deleteFile}) before merging.`,
+    mainMessage,
     ":warning::warning::warning:"
   ].join("\n\n").normalize();
 }
@@ -7510,18 +7513,9 @@ async function getPR({ baseBranch, prBranch }) {
 // src/deleteMeUtils/hasPrDeleteMeMessage.ts
 async function hasPrDeleteMeMessage({ baseBranch, prBranch }) {
   const pr = await getPR({ baseBranch, prBranch });
-  const message = deleteMeMessage(prBranch);
-  console.log(pr.body);
-  console.log("--vs--");
-  console.log(message);
-  const body = `${pr.body || ""}`.normalize();
-  console.log(body.split("\n").length);
+  const message = deleteMeMessage(prBranch, true);
+  const body = pr.body || "";
   const hasMessage = body.includes(message);
-  console.log(`hasMessage: ${hasMessage}`);
-  console.log(`and now?: ${body.includes(message.trim())}`);
-  const core = message.split("\n").find((v) => v.includes("Delete"));
-  console.log(`core: ${core}`);
-  console.log(`and now2? ${body.includes(core)}`);
   return hasMessage;
 }
 
@@ -7551,7 +7545,13 @@ async function upsertPr({ baseBranch, prBranch, title, body }) {
 // src/deleteMeUtils/removePrDeleteMeMessage.ts
 async function removePrDeleteMeMessage({ baseBranch, prBranch }) {
   const pr = await getPR({ baseBranch, prBranch });
-  const body = pr.body.replace(deleteMeMessage(prBranch), "");
+  const coreDeleteMsg = deleteMeMessage(prBranch, true);
+  const deleteMsg = deleteMeMessage(prBranch).split("\n");
+  const deleteMsgCoreIndex = deleteMsg.indexOf(coreDeleteMsg);
+  const bodySplit = pr.body.split("\n");
+  const messageIndex = bodySplit.indexOf(coreDeleteMsg);
+  bodySplit.splice(messageIndex - deleteMsgCoreIndex, deleteMsg.length);
+  const body = bodySplit.join("\n");
   console.log("body after removing bot message");
   console.log(body);
   await upsertPr({

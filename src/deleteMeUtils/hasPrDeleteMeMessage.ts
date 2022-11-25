@@ -1,4 +1,3 @@
-import { context } from "@actions/github";
 import { getPR } from "../utils/getPR";
 import { deleteMeMessage } from "./deleteMePrMessage";
 
@@ -7,28 +6,11 @@ export async function hasPrDeleteMeMessage({ baseBranch, prBranch }: { baseBranc
 
   const pr = (await getPR({ baseBranch, prBranch }))!;
 
-  const message = deleteMeMessage(prBranch);
+  const message = deleteMeMessage(prBranch, true);
 
-  console.log(pr.body);
-  console.log('--vs--');
-  console.log(message);
-
-  const body = `${pr.body || ''}`.normalize();
-
-  console.log(body.split('\n').length);
-  
+  const body = pr.body || '';
 
   const hasMessage = body.includes(message);
-
-  console.log(`hasMessage: ${hasMessage}`);
-  
-  console.log(`and now?: ${body.includes(message.trim())}`);
-
-  const core = message.split('\n').find(v=>v.includes('Delete'))!;
-  console.log(`core: ${core}`);
-
-  console.log(`and now2? ${body.includes(core)}`);
-  
 
   return hasMessage;
 
