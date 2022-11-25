@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.3
+
+### Patch Changes
+
+- 107398c: fix: pr main to next
+
 ## 0.1.2
 
 ### Patch Changes
