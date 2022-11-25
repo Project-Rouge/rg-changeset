@@ -7511,6 +7511,7 @@ async function getPR({ baseBranch, prBranch }) {
 async function hasPrDeleteMeMessage({ baseBranch, prBranch }) {
   const pr = await getPR({ baseBranch, prBranch });
   const message = deleteMeMessage(prBranch);
+  console.log(pr.body);
   const body = pr.body || "";
   const hasMessage = body.includes(message);
   return hasMessage;
