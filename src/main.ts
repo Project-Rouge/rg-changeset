@@ -1,5 +1,7 @@
-import { exec } from '@actions/exec';
 import { config } from "dotenv";
+process.env.GITHUB_REF || config()
+
+import { exec } from '@actions/exec';
 import { existsSync } from 'fs';
 import { Env } from "./utils/Env";
 import { pipeLog } from "./utils/pipeLog";
