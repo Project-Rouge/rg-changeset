@@ -9,6 +9,8 @@ export async function hasPrDeleteMeMessage({ baseBranch, prBranch }: { baseBranc
   const message = deleteMeMessage(prBranch);
 
   console.log(pr.body);
+  console.log('--vs--');
+  console.log(message);
 
   const body = pr.body || '';
 
