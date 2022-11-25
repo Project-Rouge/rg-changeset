@@ -7580,9 +7580,11 @@ var import_exec5 = __toESM(require_exec());
 // src/utils/canCommit.ts
 var import_exec4 = __toESM(require_exec());
 async function canCommit() {
-  let itCan = (await (0, import_exec4.getExecOutput)("git diff", [], { silent: true })).stdout.trim().length !== 0;
-  itCan = itCan || (await (0, import_exec4.getExecOutput)("git ls-files -o --exclude-standard", [], { silent: true })).stdout.trim().length !== 0;
-  return itCan;
+  return await didChange("git diff --name-only") || await didChange("git ls-files -o --exclude-standard");
+}
+async function didChange(command) {
+  const newFiles = (await (0, import_exec4.getExecOutput)(command, [], { silent: true })).stdout.trim().split("\n").filter((v) => !v || v !== "./changeset/pre.json");
+  return newFiles.length > 0;
 }
 
 // src/utils/getChangelogEntry.ts
