@@ -7431,17 +7431,25 @@ var import_dotenv = __toESM(require_main());
 var import_exec8 = __toESM(require_exec());
 var import_fs6 = require("fs");
 
+// src/utils/pipeLog.ts
+function pipeLog(message) {
+  console.log(`\u{1F33A} ${message}`);
+}
+
 // src/deleteMeUtils/addDeleteMeFile.ts
 var import_fs = require("fs");
 
 // src/deleteMeUtils/deleteMePrMessage.ts
 var import_github = __toESM(require_github());
-function deleteMeMessage(branch) {
+function deleteMeMessage(branch, onlyMainMessage = false) {
+  const mainMessage = `:octocat: Delete [bot note](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/blob/${branch}/${deleteFile}) before merging.`;
+  if (onlyMainMessage)
+    return mainMessage;
   return [
     "\n\n:warning::warning::warning:",
-    `:octocat: Delete [bot note](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/blob/${branch}/${deleteFile}) before merging.`,
+    mainMessage,
     ":warning::warning::warning:"
-  ].join("\n\n");
+  ].join("\n\n").normalize();
 }
 
 // src/deleteMeUtils/addDeleteMeFile.ts
@@ -7505,8 +7513,10 @@ async function getPR({ baseBranch, prBranch }) {
 // src/deleteMeUtils/hasPrDeleteMeMessage.ts
 async function hasPrDeleteMeMessage({ baseBranch, prBranch }) {
   const pr = await getPR({ baseBranch, prBranch });
-  const message = deleteMeMessage(prBranch);
-  return (pr.body || "").includes(message);
+  const message = deleteMeMessage(prBranch, true);
+  const body = pr.body || "";
+  const hasMessage = body.includes(message);
+  return hasMessage;
 }
 
 // src/utils/upsertPr.ts
@@ -7535,7 +7545,15 @@ async function upsertPr({ baseBranch, prBranch, title, body }) {
 // src/deleteMeUtils/removePrDeleteMeMessage.ts
 async function removePrDeleteMeMessage({ baseBranch, prBranch }) {
   const pr = await getPR({ baseBranch, prBranch });
-  const body = pr.body.replace(deleteMeMessage(prBranch), "");
+  const coreDeleteMsg = deleteMeMessage(prBranch, true);
+  const deleteMsg = deleteMeMessage(prBranch).split("\n");
+  const deleteMsgCoreIndex = deleteMsg.indexOf(coreDeleteMsg);
+  const bodySplit = pr.body.split("\n");
+  const messageIndex = bodySplit.indexOf(coreDeleteMsg);
+  bodySplit.splice(messageIndex - deleteMsgCoreIndex, deleteMsg.length);
+  const body = bodySplit.join("\n");
+  console.log("body after removing bot message");
+  console.log(body);
   await upsertPr({
     baseBranch,
     prBranch,
@@ -7546,9 +7564,12 @@ async function removePrDeleteMeMessage({ baseBranch, prBranch }) {
 
 // src/deleteMeUtils/updatePrDeleteMeStatus.ts
 async function updatePrDeleteMeStatus({ baseBranch, prBranch }) {
+  pipeLog("deleteMeFileExists");
   if (deleteMeFileExists())
     throw new Error(`You need to manually delete \`${deleteFile}\``);
+  pipeLog("hasPrDeleteMeMessage");
   if (await hasPrDeleteMeMessage({ baseBranch, prBranch })) {
+    pipeLog("removePrDeleteMeMessage");
     await removePrDeleteMeMessage({ baseBranch, prBranch });
   }
 }
@@ -7556,17 +7577,12 @@ async function updatePrDeleteMeStatus({ baseBranch, prBranch }) {
 // src/utils/Env.ts
 var Env = class {
   static get thisBranch() {
-    return process.env.GITHUB_REF_NAME;
+    return process.env.GITHUB_HEAD_REF;
   }
   static get thisPrBranch() {
     return process.env.GITHUB_BASE_REF;
   }
 };
-
-// src/utils/pipeLog.ts
-function pipeLog(message) {
-  console.log(`\u{1F33A} ${message}`);
-}
 
 // src/utils/commitAndPush.ts
 var import_exec = __toESM(require_exec());
@@ -7747,6 +7763,7 @@ if (Env.thisPrBranch)
 else
   runCD();
 async function runPR() {
+  pipeLog("runPR");
   const pre = ".changeset/pre.json";
   const isPreRelease = (0, import_fs6.existsSync)(pre);
   if (!isPreRelease && Env.thisPrBranch === "next") {
@@ -7755,6 +7772,7 @@ async function runPR() {
   if (isPreRelease && Env.thisPrBranch === "main") {
     throw new Error(`PR is in pre-release mode. Forgot to run \`yarn changeset pre exit\`?`);
   }
+  pipeLog("updatePrDeleteMeStatus");
   await updatePrDeleteMeStatus({ baseBranch: Env.thisPrBranch, prBranch: Env.thisBranch });
 }
 async function runCD() {
