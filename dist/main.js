@@ -2484,8 +2484,8 @@ var require_dist_node2 = __commonJS({
     function isKeyOperator(operator) {
       return operator === ";" || operator === "&" || operator === "?";
     }
-    function getValues(context6, operator, key, modifier) {
-      var value = context6[key], result = [];
+    function getValues(context5, operator, key, modifier) {
+      var value = context5[key], result = [];
       if (isDefined(value) && value !== "") {
         if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
           value = value.toString();
@@ -2545,7 +2545,7 @@ var require_dist_node2 = __commonJS({
         expand: expand.bind(null, template)
       };
     }
-    function expand(template, context6) {
+    function expand(template, context5) {
       var operators = ["+", "#", ".", "/", ";", "?", "&"];
       return template.replace(/\{([^\{\}]+)\}|([^\{\}]+)/g, function(_, expression, literal) {
         if (expression) {
@@ -2557,7 +2557,7 @@ var require_dist_node2 = __commonJS({
           }
           expression.split(/,/g).forEach(function(variable) {
             var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
-            values.push(getValues(context6, operator, tmp[1], tmp[2] || tmp[3]));
+            values.push(getValues(context5, operator, tmp[1], tmp[2] || tmp[3]));
           });
           if (operator && operator !== "+") {
             var separator = ",";
@@ -7469,9 +7469,6 @@ function deleteMeFileExists() {
   return (0, import_fs2.existsSync)(deleteFile);
 }
 
-// src/deleteMeUtils/hasPrDeleteMeMessage.ts
-var import_github4 = __toESM(require_github());
-
 // src/utils/getPR.ts
 var import_github3 = __toESM(require_github());
 
@@ -7513,37 +7510,27 @@ async function getPR({ baseBranch, prBranch }) {
 // src/deleteMeUtils/hasPrDeleteMeMessage.ts
 async function hasPrDeleteMeMessage({ baseBranch, prBranch }) {
   const pr = await getPR({ baseBranch, prBranch });
-  console.log(`prBranch: ${prBranch}`);
-  console.log(`baseBranch: ${baseBranch}`);
-  console.log(`process.env.GITHUB_REF_NAME: ${process.env.GITHUB_REF_NAME}`);
-  console.log(`process.env.GITHUB_BASE_REF: ${process.env.GITHUB_BASE_REF}`);
-  console.log(`process.env.GITHUB_REF: ${process.env.GITHUB_REF}`);
-  console.log(`process.env.GITHUB_HEAD_REF: ${process.env.GITHUB_HEAD_REF}`);
-  console.log(`context.ref: ${import_github4.context.ref}`);
   const message = deleteMeMessage(prBranch);
-  console.log(pr.body);
-  console.log("--vs--");
-  console.log(message);
   const body = pr.body || "";
   const hasMessage = body.includes(message);
   return hasMessage;
 }
 
 // src/utils/upsertPr.ts
-var import_github5 = __toESM(require_github());
+var import_github4 = __toESM(require_github());
 async function upsertPr({ baseBranch, prBranch, title, body }) {
   const octokit = getGithubKit();
   const pr = await getPR({ baseBranch, prBranch });
   if (pr) {
     await octokit.rest.pulls.update({
-      ...import_github5.context.repo,
+      ...import_github4.context.repo,
       pull_number: pr.number,
       title,
       body
     });
   } else {
     await octokit.rest.pulls.create({
-      ...import_github5.context.repo,
+      ...import_github4.context.repo,
       head: prBranch,
       base: baseBranch,
       title,
@@ -7581,7 +7568,7 @@ async function updatePrDeleteMeStatus({ baseBranch, prBranch }) {
 // src/utils/Env.ts
 var Env = class {
   static get thisBranch() {
-    return process.env.GITHUB_REF_NAME;
+    return process.env.GITHUB_HEAD_REF;
   }
   static get thisPrBranch() {
     return process.env.GITHUB_BASE_REF;
@@ -7719,7 +7706,7 @@ async function prRelease() {
 
 // src/utils/release.ts
 var import_exec7 = __toESM(require_exec());
-var import_github6 = __toESM(require_github());
+var import_github5 = __toESM(require_github());
 async function release() {
   const { version, name } = getJson();
   let npmReleased = false;
@@ -7739,7 +7726,7 @@ async function release() {
     const octokit = getGithubKit();
     try {
       await octokit.rest.repos.getReleaseByTag({
-        ...import_github6.context.repo,
+        ...import_github5.context.repo,
         tag: version
       });
     } catch (e) {
@@ -7747,7 +7734,7 @@ async function release() {
         throw e;
       console.log("tag does not exist, creating...");
       await octokit.rest.repos.createRelease({
-        ...import_github6.context.repo,
+        ...import_github5.context.repo,
         name: version,
         tag_name: version,
         body: getChangelogEntry(version),
