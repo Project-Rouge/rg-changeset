@@ -12,7 +12,7 @@ export async function upsertBranch({ sourceBranch, prBranch }: prepPrBranchProps
 
   await exec('git reset --hard');
   await exec(`git checkout ${sourceBranch}`);
-  await exec(`git checkout -b ${prBranch}`);
+  await exec(`git checkout -B ${prBranch}`);
   await exec(`git merge ${sourceBranch} --no-edit --no-commit`);
 
 }
