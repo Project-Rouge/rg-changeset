@@ -9,12 +9,6 @@ import { prependToReadme } from './prependToReadme';
 import { upsertPr } from './upsertPr';
 import { upsertBranch } from './upsertPrBranch';
 
-interface createBumpPRProps {
-  prBranch?: string,
-  baseBranch?: string,
-  title?: string,
-}
-
 /** create a Bump PR that will trigger a release on merge (if possible) */
 export async function prRelease() {
   try {
