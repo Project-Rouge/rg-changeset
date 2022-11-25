@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.4
+
+### Patch Changes
+
+- a472182: fix: old PRs don't update
+
 ## 0.1.3
 
 ### Patch Changes
