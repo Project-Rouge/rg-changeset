@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.5
+
+### Patch Changes
+
+- 533a8b5: fix main to dev pr update
+
 ## 0.1.4
 
 ### Patch Changes
