@@ -23,6 +23,6 @@ jobs:
       - run: yarn build:dev
       - name: "rg-changeset-action"
         id: "rg-changeset-action"
-        uses: ./dev.action.yml
+        uses: ./.github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

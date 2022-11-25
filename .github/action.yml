@@ -1,3 +1,4 @@
+# dev action
 name: "rg-changeset"
 description: "Changeset action for `rg-suite`"
 runs:
