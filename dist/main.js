@@ -7506,7 +7506,9 @@ async function getPR({ baseBranch, prBranch }) {
 async function hasPrDeleteMeMessage({ baseBranch, prBranch }) {
   const pr = await getPR({ baseBranch, prBranch });
   const message = deleteMeMessage(prBranch);
-  return (pr.body || "").includes(message);
+  const body = pr.body || "";
+  const hasMessage = body.includes(message);
+  return hasMessage;
 }
 
 // src/utils/upsertPr.ts
@@ -7536,6 +7538,8 @@ async function upsertPr({ baseBranch, prBranch, title, body }) {
 async function removePrDeleteMeMessage({ baseBranch, prBranch }) {
   const pr = await getPR({ baseBranch, prBranch });
   const body = pr.body.replace(deleteMeMessage(prBranch), "");
+  console.log("body after removing bot message");
+  console.log(body);
   await upsertPr({
     baseBranch,
     prBranch,

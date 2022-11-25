@@ -8,6 +8,9 @@ export async function removePrDeleteMeMessage({ baseBranch, prBranch }: { baseBr
 
   const body = pr.body!.replace(deleteMeMessage(prBranch), '');
 
+  console.log('body after removing bot message');
+  console.log(body);
+
   await upsertPr({
     baseBranch,
     prBranch,
