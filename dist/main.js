@@ -7603,11 +7603,13 @@ var import_exec5 = __toESM(require_exec());
 var import_github5 = __toESM(require_github());
 async function prMainToNext() {
   try {
+    const sourceBranch = "main";
     const baseBranch = "next";
     const prBranch = "sync/main-to-next";
     await (0, import_exec5.exec)("git reset --hard");
-    await (0, import_exec5.exec)("git checkout main");
+    await (0, import_exec5.exec)(`git checkout ${sourceBranch}`);
     await (0, import_exec5.exec)(`git checkout -b ${prBranch}`);
+    await (0, import_exec5.exec)(`git merge ${sourceBranch} --no-edit`);
     await setReleaseMode("next");
     await (0, import_exec5.exec)("git restore .changeset/config.json");
     if (!await canCommit()) {

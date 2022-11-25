@@ -11,12 +11,14 @@ import { setReleaseMode } from './setReleaseMode';
 export async function prMainToNext() {
   try {
 
+    const sourceBranch = 'main';
     const baseBranch = 'next';
     const prBranch = 'sync/main-to-next';
 
     await exec('git reset --hard');
-    await exec('git checkout main');
+    await exec(`git checkout ${sourceBranch}`);
     await exec(`git checkout -b ${prBranch}`);
+    await exec(`git merge ${sourceBranch} --no-edit`);
     await setReleaseMode('next');
     await exec('git restore .changeset/config.json');
     if (!(await canCommit())) {
