@@ -1,10 +1,10 @@
 import { exec } from '@actions/exec';
+import { addDeleteMeFile } from '../deleteMeUtils/addDeleteMeFile';
 import { canCommit } from './canCommit';
 import { catchErrorLog } from "./catchErrorLog";
 import { commitAndPush } from './commitAndPush';
 import { getChangelogEntry } from './getChangelogEntry';
 import { getJson } from './getJson';
-import { prependToReadme } from './prependToReadme';
 import { setReleaseMode } from "./setReleaseMode";
 import { upsertPr } from './upsertPr';
 import { upsertBranch } from './upsertPrBranch';
@@ -23,7 +23,7 @@ export async function prNextToMainRelease() {
       console.log('nothing to commit.');
       return;
     }
-    const botNote = prependToReadme(prBranch);
+    const botNote = addDeleteMeFile(prBranch);
 
     await commitAndPush({ branch: prBranch });
 

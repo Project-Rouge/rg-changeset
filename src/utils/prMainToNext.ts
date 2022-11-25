@@ -1,7 +1,7 @@
+import { addDeleteMeFile } from '../deleteMeUtils/addDeleteMeFile';
 import { catchErrorLog } from "./catchErrorLog";
 import { commitAndPush } from './commitAndPush';
 import { getJson } from './getJson';
-import { prependToReadme } from './prependToReadme';
 import { setReleaseMode } from './setReleaseMode';
 import { upsertPr } from './upsertPr';
 import { upsertBranch } from './upsertPrBranch';
@@ -17,7 +17,7 @@ export async function prMainToNext() {
     await upsertBranch({ sourceBranch, prBranch });
 
     await setReleaseMode('next');
-    const botNote = prependToReadme(prBranch);
+    const botNote = addDeleteMeFile(prBranch);
 
     await commitAndPush({ branch: prBranch });
 
