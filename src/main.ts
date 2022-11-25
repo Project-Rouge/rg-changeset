@@ -3,6 +3,7 @@ process.env.GITHUB_REF || config()
 
 import { exec } from '@actions/exec';
 import { existsSync } from 'fs';
+import { updatePrDeleteMeStatus } from "./deleteMeUtils/updatePrDeleteMeStatus";
 import { Env } from "./utils/Env";
 import { pipeLog } from "./utils/pipeLog";
 import { prMainToNext } from "./utils/prMainToNext";
@@ -23,6 +24,8 @@ async function runPR() {
   if (isPreRelease && Env.thisPrBranch === 'main') {
     throw new Error(`PR is in pre-release mode. Forgot to run \`yarn changeset pre exit\`?`)
   }
+
+  await updatePrDeleteMeStatus({ baseBranch: Env.thisPrBranch, prBranch: Env.thisBranch });
 }
 
 async function runCD() {
