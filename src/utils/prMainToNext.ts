@@ -1,11 +1,10 @@
 import { exec } from '@actions/exec';
-import { context } from '@actions/github';
 import { canCommit } from './canCommit';
 import { catchErrorLog } from "./catchErrorLog";
-import { getGithubKit } from "./getGithubKit";
-import { getPR } from "./getPR";
+import { getJson } from './getJson';
 import { prependToReadme } from './prependToReadme';
 import { setReleaseMode } from './setReleaseMode';
+import { upsertPr } from './upsertPr';
 
 /** create a PR from `main` to `next` (if possible) */
 export async function prMainToNext() {
@@ -18,7 +17,7 @@ export async function prMainToNext() {
     await exec('git reset --hard');
     await exec(`git checkout ${sourceBranch}`);
     await exec(`git checkout -b ${prBranch}`);
-    await exec(`git merge ${sourceBranch} --no-edit`);
+    await exec(`git merge ${sourceBranch} --no-edit --no-commit`);
     await setReleaseMode('next');
     await exec('git restore .changeset/config.json');
     if (!(await canCommit())) {
@@ -29,17 +28,13 @@ export async function prMainToNext() {
     await exec('git add .');
     await exec('git commit -m "prep main-to-next"')
     await exec(`git push origin ${prBranch} --force`);
-    const pr = await getPR({ baseBranch, prBranch });
-    if (pr)
-      return;
-    const octokit = getGithubKit();
-    await octokit.rest.pulls.create({
-      ...context.repo,
-      base: baseBranch,
-      head: prBranch,
-      title: ':arrow_down: (sync) merge `main` back into `next`',
-      body: botNote
-    });
+
+    const version = getJson().version;
+
+    const title = `:arrow_down: (sync) merge \`main@${version}\` back into \`next\``;
+    const body = botNote;
+
+    await upsertPr({ baseBranch, prBranch, title, body });
   } catch (e) {
     catchErrorLog(e);
   }
