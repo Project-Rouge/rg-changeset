@@ -1,13 +1,13 @@
 import { exec } from '@actions/exec';
-import { context } from '@actions/github';
 import { canCommit } from './canCommit';
 import { catchErrorLog } from "./catchErrorLog";
+import { commitAndPush } from './commitAndPush';
 import { Env } from './Env';
 import { getChangelogEntry } from "./getChangelogEntry";
-import { getGithubKit } from "./getGithubKit";
 import { getJson } from "./getJson";
-import { getPR } from "./getPR";
 import { prependToReadme } from './prependToReadme';
+import { upsertPr } from './upsertPr';
+import { upsertBranch } from './upsertPrBranch';
 
 interface createBumpPRProps {
   prBranch?: string,
@@ -16,47 +16,31 @@ interface createBumpPRProps {
 }
 
 /** create a Bump PR that will trigger a release on merge (if possible) */
-export async function prRelease({
-  prBranch = `release/${Env.thisBranch}-release`,
-  baseBranch = Env.thisBranch,
-  title = `Upcoming _version_ release (\`${baseBranch}\`)`,
-}: createBumpPRProps) {
+export async function prRelease() {
   try {
+
+    const sourceBranch = Env.thisBranch;
+    const baseBranch = sourceBranch;
+    const prBranch = `release/${sourceBranch}-release`;
+
+    await upsertBranch({ sourceBranch, prBranch });
     await exec('yarn changeset version');
-    await exec(`git checkout -b ${prBranch}`);
-    await exec('git restore .changeset/config.json');
-    const version = getJson().version as string;
     if (!(await canCommit())) {
       console.log('nothing to commit.');
       return;
     }
     const botNote = prependToReadme(prBranch);
-    await exec('git add .');
-    await exec(`git commit -m "(chore) changeset bump to ${version}"`)
-    await exec(`git push origin ${prBranch} --force`);
 
-    const pr = await getPR({ baseBranch, prBranch });
+    await commitAndPush({ branch: prBranch });
 
-    title = title.replace('_version_', `\`${version}\``);
+    const version = getJson().version;
 
-    const octokit = getGithubKit();
+    let title = `Upcoming \`${version}\` release (\`${baseBranch}\`)`;
+    if (baseBranch === 'main') title = `:warning: ${title}`;
+    const body = getChangelogEntry(version) + botNote;
 
-    if (pr) {
-      await octokit.rest.pulls.update({
-        ...context.repo,
-        pull_number: pr.number,
-        title,
-        body: getChangelogEntry(version) + botNote
-      })
-    } else {
-      await octokit.rest.pulls.create({
-        ...context.repo,
-        head: prBranch,
-        base: baseBranch,
-        title,
-        body: getChangelogEntry(version) + botNote
-      })
-    }
+    await upsertPr({ baseBranch, prBranch, title, body })
+
   } catch (e) {
     catchErrorLog(e);
   }

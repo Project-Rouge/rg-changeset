@@ -1,14 +1,13 @@
-import { config } from "dotenv";
-process.env.GITHUB_REF || config();
 import { exec } from '@actions/exec';
+import { config } from "dotenv";
 import { existsSync } from 'fs';
-import { prRelease } from "./utils/prRelease";
-import { prNextToMainRelease } from "./utils/prNextToMainRelease";
 import { Env } from "./utils/Env";
 import { pipeLog } from "./utils/pipeLog";
 import { prMainToNext } from "./utils/prMainToNext";
+import { prNextToMainRelease } from "./utils/prNextToMainRelease";
+import { prRelease } from "./utils/prRelease";
 import { release } from "./utils/release";
-import { setReleaseMode } from "./utils/setReleaseMode";
+process.env.GITHUB_REF || config();
 
 if (Env.thisPrBranch) runPR();
 else runCD();
@@ -32,8 +31,8 @@ async function runCD() {
   pipeLog('release');
   await release();
 
-  pipeLog('createBumpPR');
-  await prRelease({});
+  pipeLog('prRelease');
+  await prRelease();
 
   if (Env.thisBranch === 'main') {
     pipeLog('prMainToNext');
@@ -41,7 +40,7 @@ async function runCD() {
   }
 
   if (Env.thisBranch === 'next') {
-    pipeLog('createNextToMainBumpPR');
+    pipeLog('prNextToMainRelease');
     await prNextToMainRelease();
   }
 
