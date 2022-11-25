@@ -17,6 +17,11 @@ export async function hasPrDeleteMeMessage({ baseBranch, prBranch }: { baseBranc
 
   const hasMessage = body.includes(message);
 
+  console.log(`hasMessage: ${hasMessage}`);
+  
+  console.log(`and now?: ${body.includes(message.trim())}`);
+  
+
   return hasMessage;
 
 }

@@ -7516,6 +7516,8 @@ async function hasPrDeleteMeMessage({ baseBranch, prBranch }) {
   console.log(message);
   const body = pr.body || "";
   const hasMessage = body.includes(message);
+  console.log(`hasMessage: ${hasMessage}`);
+  console.log(`and now?: ${body.includes(message.trim())}`);
   return hasMessage;
 }
 
