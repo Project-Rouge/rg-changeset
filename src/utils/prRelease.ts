@@ -16,7 +16,7 @@ interface createBumpPRProps {
 }
 
 /** create a Bump PR that will trigger a release on merge (if possible) */
-export async function createBumpPR({
+export async function prRelease({
   prBranch = `release/${Env.thisBranch}-release`,
   baseBranch = Env.thisBranch,
   title = `Upcoming _version_ release (\`${baseBranch}\`)`,
