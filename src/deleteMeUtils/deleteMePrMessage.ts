@@ -7,6 +7,7 @@ export function deleteMeMessage(branch: string, onlyMainMessage = false) {
   return [
     "\n\n:warning::warning::warning:",
     mainMessage,
+    "This message will disappear automatically after deleting the file with the next GH action check.",
     ":warning::warning::warning:",
   ].join('\n\n').normalize();
 }
