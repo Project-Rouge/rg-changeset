@@ -8,7 +8,7 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "esbuild src/main.ts --bundle --platform=node --target=node16 --outfile=dist/main.js",
-    "build:dev": "esbuild src/main.ts --platform=node --target=node16 --outfile=build/main.mjs"
+    "build:dev": "esbuild src/main.ts --bundle --platform=node --target=node16 --outfile=build/main.js"
   },
   "dependencies": {
     "@actions/exec": "^1.1.1",
