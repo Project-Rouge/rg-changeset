@@ -7429,9 +7429,9 @@ var require_github = __commonJS({
 // src/main.ts
 var import_dotenv = __toESM(require_main());
 var import_exec7 = __toESM(require_exec());
-var import_fs6 = require("fs");
+var import_fs5 = require("fs");
 
-// src/utils/createBumpPR.ts
+// src/utils/prRelease.ts
 var import_exec2 = __toESM(require_exec());
 var import_github4 = __toESM(require_github());
 
@@ -7516,8 +7516,8 @@ ${readme}`;
 :octocat: Delete [bot note](https://github.com/${import_github3.context.repo.owner}/${import_github3.context.repo.repo}/edit/${branch}/README.md#L1-L2) to trigger PR actions`;
 }
 
-// src/utils/createBumpPR.ts
-async function createBumpPR({
+// src/utils/prRelease.ts
+async function prRelease({
   prBranch = `release/${Env.thisBranch}-release`,
   baseBranch = Env.thisBranch,
   title = `Upcoming _version_ release (\`${baseBranch}\`)`
@@ -7559,44 +7559,31 @@ async function createBumpPR({
   }
 }
 
-// src/utils/createNextToMainBumpPR.ts
+// src/utils/prNextToMainRelease.ts
 var import_exec4 = __toESM(require_exec());
 
 // src/utils/setReleaseMode.ts
 var import_exec3 = __toESM(require_exec());
-var import_fs5 = require("fs");
-
-// src/utils/updateChangesetConfig.ts
 var import_fs4 = require("fs");
-function updateChangesetConfig({ branch = Env.thisBranch }) {
-  const configFilePath = ".changeset/config.json";
-  const config2 = getJson(configFilePath);
-  config2.baseBranch = branch;
-  (0, import_fs4.writeFileSync)(configFilePath, JSON.stringify(config2, null, 2) + "\n");
-}
-
-// src/utils/setReleaseMode.ts
-async function setReleaseMode({ forceExit = false } = {}) {
-  updateChangesetConfig({ branch: forceExit ? "main" : Env.thisBranch });
+async function setReleaseMode(asBranch) {
   try {
-    const isInPreMode = (0, import_fs5.existsSync)("./.changeset/pre.json");
-    if (isInPreMode && (forceExit || Env.thisBranch === "main"))
+    const isInPreMode = (0, import_fs4.existsSync)("./.changeset/pre.json");
+    if (isInPreMode && asBranch === "main")
       await (0, import_exec3.exec)(`yarn changeset pre exit`);
-    if (!isInPreMode && !forceExit && Env.thisBranch === "dev")
+    if (!isInPreMode && asBranch === "dev")
       await (0, import_exec3.exec)(`yarn changeset pre enter next`);
   } catch (e) {
     catchErrorLog(e);
   }
 }
 
-// src/utils/createNextToMainBumpPR.ts
-async function createNextToMainBumpPR() {
-  if (Env.thisBranch !== "next")
-    return;
+// src/utils/prNextToMainRelease.ts
+async function prNextToMainRelease() {
   try {
     await (0, import_exec4.exec)("git reset --hard");
-    await setReleaseMode({ forceExit: true });
-    await createBumpPR({
+    await (0, import_exec4.exec)("git checkout next");
+    await setReleaseMode("main");
+    await prRelease({
       prBranch: "release/next-to-main-release",
       baseBranch: "main",
       title: ":warning: Upcoming _version_ Release (`next` to `main`)"
@@ -7615,14 +7602,13 @@ function pipeLog(message) {
 var import_exec5 = __toESM(require_exec());
 var import_github5 = __toESM(require_github());
 async function prMainToNext() {
-  if (Env.thisBranch !== "main")
-    return;
   try {
     const baseBranch = "next";
     const prBranch = "sync/main-to-next";
     await (0, import_exec5.exec)("git reset --hard");
+    await (0, import_exec5.exec)("git checkout main");
     await (0, import_exec5.exec)(`git checkout -b ${prBranch}`);
-    await (0, import_exec5.exec)("yarn changeset pre enter next");
+    await setReleaseMode("next");
     await (0, import_exec5.exec)("git restore .changeset/config.json");
     if (!await canCommit()) {
       console.log("nothing to commit.");
@@ -7698,7 +7684,7 @@ else
   runCD();
 async function runPR() {
   const pre = ".changeset/pre.json";
-  const isPreRelease = (0, import_fs6.existsSync)(pre);
+  const isPreRelease = (0, import_fs5.existsSync)(pre);
   if (!isPreRelease && Env.thisPrBranch === "next") {
     throw new Error(`${pre} not found. Forgot to run \`yarn changeset pre enter next\`?`);
   }
@@ -7709,16 +7695,18 @@ async function runPR() {
 async function runCD() {
   pipeLog("setGitConfig");
   await setGitConfig();
-  pipeLog("setReleaseMode");
-  await setReleaseMode();
   pipeLog("release");
   await release();
-  pipeLog("prMainToNext");
-  await prMainToNext();
   pipeLog("createBumpPR");
-  await createBumpPR({});
-  pipeLog("createNextToMainBumpPR");
-  await createNextToMainBumpPR();
+  await prRelease({});
+  if (Env.thisBranch === "main") {
+    pipeLog("prMainToNext");
+    await prMainToNext();
+  }
+  if (Env.thisBranch === "next") {
+    pipeLog("createNextToMainBumpPR");
+    await prNextToMainRelease();
+  }
 }
 async function setGitConfig() {
   await (0, import_exec7.exec)("git config user.name github-actions");
