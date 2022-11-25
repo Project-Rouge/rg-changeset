@@ -1,4 +1,3 @@
-import { canCommit } from './canCommit';
 import { catchErrorLog } from "./catchErrorLog";
 import { commitAndPush } from './commitAndPush';
 import { getJson } from './getJson';
@@ -18,10 +17,6 @@ export async function prMainToNext() {
     await upsertBranch({ sourceBranch, prBranch });
 
     await setReleaseMode('next');
-    if (!(await canCommit())) {
-      console.log('nothing to commit.');
-      return;
-    }
     const botNote = prependToReadme(prBranch);
 
     await commitAndPush({ branch: prBranch });
