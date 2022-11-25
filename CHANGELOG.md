@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.8
+
+### Patch Changes
+
+- de518dc: fix: avoid empty pr
+
 ## 0.1.7
 
 ### Patch Changes
