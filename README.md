@@ -1,3 +1,5 @@
+:octocat: Created by github-bot. Delete this line to trigger PR actions
+
 # rg-changeset-action
 
 :package: [npm](https://www.npmjs.com/package/@project-rouge/rg-changeset-action)
