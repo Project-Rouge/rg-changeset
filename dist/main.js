@@ -7442,14 +7442,6 @@ function pipeLog(message) {
   console.log(`\u{1F33A} ${message}`);
 }
 
-// src/utils/canCommit.ts
-var import_exec = __toESM(require_exec());
-async function canCommit() {
-  let itCan = (await (0, import_exec.getExecOutput)("git diff", [], { silent: true })).stdout.trim().length !== 0;
-  itCan = itCan || (await (0, import_exec.getExecOutput)("git ls-files -o --exclude-standard", [], { silent: true })).stdout.trim().length !== 0;
-  return itCan;
-}
-
 // src/utils/catchErrorLog.ts
 function catchErrorLog(error) {
   console.trace(`\u{1F41B}`);
@@ -7461,11 +7453,11 @@ function catchErrorLog(error) {
 }
 
 // src/utils/commitAndPush.ts
-var import_exec2 = __toESM(require_exec());
+var import_exec = __toESM(require_exec());
 async function commitAndPush({ branch, message = `update ${branch}` }) {
-  await (0, import_exec2.exec)("git add .");
-  await (0, import_exec2.exec)(`git commit -m "update ${message}"`);
-  await (0, import_exec2.exec)(`git push origin ${branch} --force`);
+  await (0, import_exec.exec)("git add .");
+  await (0, import_exec.exec)(`git commit -m "update ${message}"`);
+  await (0, import_exec.exec)(`git push origin ${branch} --force`);
 }
 
 // src/utils/getJson.ts
@@ -7492,15 +7484,15 @@ ${readme}`;
 }
 
 // src/utils/setReleaseMode.ts
-var import_exec3 = __toESM(require_exec());
+var import_exec2 = __toESM(require_exec());
 var import_fs3 = require("fs");
 async function setReleaseMode(asBranch) {
   try {
     const isInPreMode = (0, import_fs3.existsSync)("./.changeset/pre.json");
     if (isInPreMode && asBranch === "main")
-      await (0, import_exec3.exec)(`yarn changeset pre exit`);
+      await (0, import_exec2.exec)(`yarn changeset pre exit`);
     if (!isInPreMode && asBranch === "dev")
-      await (0, import_exec3.exec)(`yarn changeset pre enter next`);
+      await (0, import_exec2.exec)(`yarn changeset pre enter next`);
   } catch (e) {
     catchErrorLog(e);
   }
@@ -7556,11 +7548,11 @@ async function upsertPr({ baseBranch, prBranch, title, body }) {
 }
 
 // src/utils/upsertPrBranch.ts
-var import_exec4 = __toESM(require_exec());
+var import_exec3 = __toESM(require_exec());
 async function upsertBranch({ sourceBranch, prBranch }) {
-  await (0, import_exec4.exec)("git reset --hard");
-  await (0, import_exec4.exec)(`git checkout ${sourceBranch}`);
-  await (0, import_exec4.exec)(`git checkout -B ${prBranch}`);
+  await (0, import_exec3.exec)("git reset --hard");
+  await (0, import_exec3.exec)(`git checkout ${sourceBranch}`);
+  await (0, import_exec3.exec)(`git checkout -B ${prBranch}`);
 }
 
 // src/utils/prMainToNext.ts
@@ -7571,10 +7563,6 @@ async function prMainToNext() {
     const prBranch = "sync/main-to-next";
     await upsertBranch({ sourceBranch, prBranch });
     await setReleaseMode("next");
-    if (!await canCommit()) {
-      console.log("nothing to commit.");
-      return;
-    }
     const botNote = prependToReadme(prBranch);
     await commitAndPush({ branch: prBranch });
     const version = getJson().version;
@@ -7588,6 +7576,14 @@ async function prMainToNext() {
 
 // src/utils/prNextToMainRelease.ts
 var import_exec5 = __toESM(require_exec());
+
+// src/utils/canCommit.ts
+var import_exec4 = __toESM(require_exec());
+async function canCommit() {
+  let itCan = (await (0, import_exec4.getExecOutput)("git diff", [], { silent: true })).stdout.trim().length !== 0;
+  itCan = itCan || (await (0, import_exec4.getExecOutput)("git ls-files -o --exclude-standard", [], { silent: true })).stdout.trim().length !== 0;
+  return itCan;
+}
 
 // src/utils/getChangelogEntry.ts
 var import_fs4 = require("fs");
