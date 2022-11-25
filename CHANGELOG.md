@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.7
+
+### Patch Changes
+
+- 9fb5803: fix: avoid empty PRs
+
 ## 0.1.6
 
 ### Patch Changes
