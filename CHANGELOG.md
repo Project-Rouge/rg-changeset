@@ -1,5 +1,12 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.1
+
+### Patch Changes
+
+- 767de90: fix can commit triggering false negatives
+- e2657ad: fix: prerelease mode triggering in the wrong places
+
 ## 0.1.0
 
 ### Minor Changes
