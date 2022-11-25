@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.2
+
+### Patch Changes
+
+- 66db0d0: fix: pr main to next not using latest main on subsequent prs
+
 ## 0.1.1
 
 ### Patch Changes
