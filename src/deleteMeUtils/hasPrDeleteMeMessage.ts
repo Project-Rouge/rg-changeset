@@ -1,6 +1,6 @@
-import { deleteMeMessage } from "./deleteMePrMessage";
-import { getPR } from "../utils/getPR";
 import { context } from "@actions/github";
+import { getPR } from "../utils/getPR";
+import { deleteMeMessage } from "./deleteMePrMessage";
 
 /** has PR the DELETE ME message */
 export async function hasPrDeleteMeMessage({ baseBranch, prBranch }: { baseBranch: string; prBranch: string; }) {
@@ -12,7 +12,7 @@ export async function hasPrDeleteMeMessage({ baseBranch, prBranch }: { baseBranc
   console.log(`process.env.GITHUB_REF_NAME: ${process.env.GITHUB_REF_NAME}`);
   console.log(`process.env.GITHUB_BASE_REF: ${process.env.GITHUB_BASE_REF}`);
   console.log(`process.env.GITHUB_REF: ${process.env.GITHUB_REF}`);
-  
+  console.log(`context.ref: ${context.ref}`);
 
   const message = deleteMeMessage(prBranch);
 
