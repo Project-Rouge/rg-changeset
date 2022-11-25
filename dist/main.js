@@ -7491,7 +7491,7 @@ async function setReleaseMode(asBranch) {
     const isInPreMode = (0, import_fs3.existsSync)("./.changeset/pre.json");
     if (isInPreMode && asBranch === "main")
       await (0, import_exec2.exec)(`yarn changeset pre exit`);
-    if (!isInPreMode && asBranch === "dev")
+    if (!isInPreMode && asBranch === "next")
       await (0, import_exec2.exec)(`yarn changeset pre enter next`);
   } catch (e) {
     catchErrorLog(e);

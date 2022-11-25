@@ -9,7 +9,7 @@ export async function setReleaseMode(asBranch: string) {
 
     if (isInPreMode && asBranch === 'main') await exec(`yarn changeset pre exit`);
 
-    if (!isInPreMode && asBranch === 'dev') await exec(`yarn changeset pre enter next`);
+    if (!isInPreMode && asBranch === 'next') await exec(`yarn changeset pre enter next`);
   } catch (e) {
     catchErrorLog(e);
   }
