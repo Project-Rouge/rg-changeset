@@ -3,8 +3,10 @@ import { canCommit } from './canCommit';
 import { catchErrorLog } from "./catchErrorLog";
 import { getJson } from './getJson';
 import { prependToReadme } from './prependToReadme';
+import { upsertBranch } from './upsertPrBranch';
 import { setReleaseMode } from './setReleaseMode';
 import { upsertPr } from './upsertPr';
+import { commitAndPush } from './commitAndPush';
 
 /** create a PR from `main` to `next` (if possible) */
 export async function prMainToNext() {
@@ -14,20 +16,16 @@ export async function prMainToNext() {
     const baseBranch = 'next';
     const prBranch = 'sync/main-to-next';
 
-    await exec('git reset --hard');
-    await exec(`git checkout ${sourceBranch}`);
-    await exec(`git checkout -b ${prBranch}`);
-    await exec(`git merge ${sourceBranch} --no-edit --no-commit`);
+    await upsertBranch({ sourceBranch, prBranch });
+
     await setReleaseMode('next');
-    await exec('git restore .changeset/config.json');
     if (!(await canCommit())) {
       console.log('nothing to commit.');
       return;
     }
     const botNote = prependToReadme(prBranch);
-    await exec('git add .');
-    await exec('git commit -m "prep main-to-next"')
-    await exec(`git push origin ${prBranch} --force`);
+
+    await commitAndPush({ branch: prBranch });
 
     const version = getJson().version;
 

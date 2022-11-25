@@ -20,155 +20,6 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// node_modules/dotenv/package.json
-var require_package = __commonJS({
-  "node_modules/dotenv/package.json"(exports, module2) {
-    module2.exports = {
-      name: "dotenv",
-      version: "16.0.3",
-      description: "Loads environment variables from .env file",
-      main: "lib/main.js",
-      types: "lib/main.d.ts",
-      exports: {
-        ".": {
-          require: "./lib/main.js",
-          types: "./lib/main.d.ts",
-          default: "./lib/main.js"
-        },
-        "./config": "./config.js",
-        "./config.js": "./config.js",
-        "./lib/env-options": "./lib/env-options.js",
-        "./lib/env-options.js": "./lib/env-options.js",
-        "./lib/cli-options": "./lib/cli-options.js",
-        "./lib/cli-options.js": "./lib/cli-options.js",
-        "./package.json": "./package.json"
-      },
-      scripts: {
-        "dts-check": "tsc --project tests/types/tsconfig.json",
-        lint: "standard",
-        "lint-readme": "standard-markdown",
-        pretest: "npm run lint && npm run dts-check",
-        test: "tap tests/*.js --100 -Rspec",
-        prerelease: "npm test",
-        release: "standard-version"
-      },
-      repository: {
-        type: "git",
-        url: "git://github.com/motdotla/dotenv.git"
-      },
-      keywords: [
-        "dotenv",
-        "env",
-        ".env",
-        "environment",
-        "variables",
-        "config",
-        "settings"
-      ],
-      readmeFilename: "README.md",
-      license: "BSD-2-Clause",
-      devDependencies: {
-        "@types/node": "^17.0.9",
-        decache: "^4.6.1",
-        dtslint: "^3.7.0",
-        sinon: "^12.0.1",
-        standard: "^16.0.4",
-        "standard-markdown": "^7.1.0",
-        "standard-version": "^9.3.2",
-        tap: "^15.1.6",
-        tar: "^6.1.11",
-        typescript: "^4.5.4"
-      },
-      engines: {
-        node: ">=12"
-      }
-    };
-  }
-});
-
-// node_modules/dotenv/lib/main.js
-var require_main = __commonJS({
-  "node_modules/dotenv/lib/main.js"(exports, module2) {
-    var fs = require("fs");
-    var path = require("path");
-    var os = require("os");
-    var packageJson = require_package();
-    var version = packageJson.version;
-    var LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg;
-    function parse(src) {
-      const obj = {};
-      let lines = src.toString();
-      lines = lines.replace(/\r\n?/mg, "\n");
-      let match;
-      while ((match = LINE.exec(lines)) != null) {
-        const key = match[1];
-        let value = match[2] || "";
-        value = value.trim();
-        const maybeQuote = value[0];
-        value = value.replace(/^(['"`])([\s\S]*)\1$/mg, "$2");
-        if (maybeQuote === '"') {
-          value = value.replace(/\\n/g, "\n");
-          value = value.replace(/\\r/g, "\r");
-        }
-        obj[key] = value;
-      }
-      return obj;
-    }
-    function _log(message) {
-      console.log(`[dotenv@${version}][DEBUG] ${message}`);
-    }
-    function _resolveHome(envPath) {
-      return envPath[0] === "~" ? path.join(os.homedir(), envPath.slice(1)) : envPath;
-    }
-    function config2(options) {
-      let dotenvPath = path.resolve(process.cwd(), ".env");
-      let encoding = "utf8";
-      const debug = Boolean(options && options.debug);
-      const override = Boolean(options && options.override);
-      if (options) {
-        if (options.path != null) {
-          dotenvPath = _resolveHome(options.path);
-        }
-        if (options.encoding != null) {
-          encoding = options.encoding;
-        }
-      }
-      try {
-        const parsed = DotenvModule.parse(fs.readFileSync(dotenvPath, { encoding }));
-        Object.keys(parsed).forEach(function(key) {
-          if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
-            process.env[key] = parsed[key];
-          } else {
-            if (override === true) {
-              process.env[key] = parsed[key];
-            }
-            if (debug) {
-              if (override === true) {
-                _log(`"${key}" is already defined in \`process.env\` and WAS overwritten`);
-              } else {
-                _log(`"${key}" is already defined in \`process.env\` and was NOT overwritten`);
-              }
-            }
-          }
-        });
-        return { parsed };
-      } catch (e) {
-        if (debug) {
-          _log(`Failed to load ${dotenvPath} ${e.message}`);
-        }
-        return { error: e };
-      }
-    }
-    var DotenvModule = {
-      config: config2,
-      parse
-    };
-    module2.exports.config = DotenvModule.config;
-    module2.exports.parse = DotenvModule.parse;
-    module2.exports = DotenvModule;
-  }
-});
-
 // node_modules/@actions/io/lib/io-util.js
 var require_io_util = __commonJS({
   "node_modules/@actions/io/lib/io-util.js"(exports) {
@@ -411,7 +262,7 @@ var require_io = __commonJS({
     var path = __importStar(require("path"));
     var util_1 = require("util");
     var ioUtil = __importStar(require_io_util());
-    var exec7 = util_1.promisify(childProcess.exec);
+    var exec8 = util_1.promisify(childProcess.exec);
     var execFile = util_1.promisify(childProcess.execFile);
     function cp(source, dest, options = {}) {
       return __awaiter(this, void 0, void 0, function* () {
@@ -470,11 +321,11 @@ var require_io = __commonJS({
           try {
             const cmdPath = ioUtil.getCmdPath();
             if (yield ioUtil.isDirectory(inputPath, true)) {
-              yield exec7(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
+              yield exec8(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
                 env: { inputPath }
               });
             } else {
-              yield exec7(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
+              yield exec8(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
                 env: { inputPath }
               });
             }
@@ -1170,7 +1021,7 @@ var require_exec = __commonJS({
     exports.getExecOutput = exports.exec = void 0;
     var string_decoder_1 = require("string_decoder");
     var tr = __importStar(require_toolrunner());
-    function exec7(commandLine, args, options) {
+    function exec8(commandLine, args, options) {
       return __awaiter(this, void 0, void 0, function* () {
         const commandArgs = tr.argStringToArray(commandLine);
         if (commandArgs.length === 0) {
@@ -1182,7 +1033,7 @@ var require_exec = __commonJS({
         return runner.exec();
       });
     }
-    exports.exec = exec7;
+    exports.exec = exec8;
     function getExecOutput3(commandLine, args, options) {
       var _a, _b;
       return __awaiter(this, void 0, void 0, function* () {
@@ -1205,7 +1056,7 @@ var require_exec = __commonJS({
           }
         };
         const listeners = Object.assign(Object.assign({}, options === null || options === void 0 ? void 0 : options.listeners), { stdout: stdOutListener, stderr: stdErrListener });
-        const exitCode = yield exec7(commandLine, args, Object.assign(Object.assign({}, options), { listeners }));
+        const exitCode = yield exec8(commandLine, args, Object.assign(Object.assign({}, options), { listeners }));
         stdout += stdoutDecoder.end();
         stderr += stderrDecoder.end();
         return {
@@ -1216,6 +1067,155 @@ var require_exec = __commonJS({
       });
     }
     exports.getExecOutput = getExecOutput3;
+  }
+});
+
+// node_modules/dotenv/package.json
+var require_package = __commonJS({
+  "node_modules/dotenv/package.json"(exports, module2) {
+    module2.exports = {
+      name: "dotenv",
+      version: "16.0.3",
+      description: "Loads environment variables from .env file",
+      main: "lib/main.js",
+      types: "lib/main.d.ts",
+      exports: {
+        ".": {
+          require: "./lib/main.js",
+          types: "./lib/main.d.ts",
+          default: "./lib/main.js"
+        },
+        "./config": "./config.js",
+        "./config.js": "./config.js",
+        "./lib/env-options": "./lib/env-options.js",
+        "./lib/env-options.js": "./lib/env-options.js",
+        "./lib/cli-options": "./lib/cli-options.js",
+        "./lib/cli-options.js": "./lib/cli-options.js",
+        "./package.json": "./package.json"
+      },
+      scripts: {
+        "dts-check": "tsc --project tests/types/tsconfig.json",
+        lint: "standard",
+        "lint-readme": "standard-markdown",
+        pretest: "npm run lint && npm run dts-check",
+        test: "tap tests/*.js --100 -Rspec",
+        prerelease: "npm test",
+        release: "standard-version"
+      },
+      repository: {
+        type: "git",
+        url: "git://github.com/motdotla/dotenv.git"
+      },
+      keywords: [
+        "dotenv",
+        "env",
+        ".env",
+        "environment",
+        "variables",
+        "config",
+        "settings"
+      ],
+      readmeFilename: "README.md",
+      license: "BSD-2-Clause",
+      devDependencies: {
+        "@types/node": "^17.0.9",
+        decache: "^4.6.1",
+        dtslint: "^3.7.0",
+        sinon: "^12.0.1",
+        standard: "^16.0.4",
+        "standard-markdown": "^7.1.0",
+        "standard-version": "^9.3.2",
+        tap: "^15.1.6",
+        tar: "^6.1.11",
+        typescript: "^4.5.4"
+      },
+      engines: {
+        node: ">=12"
+      }
+    };
+  }
+});
+
+// node_modules/dotenv/lib/main.js
+var require_main = __commonJS({
+  "node_modules/dotenv/lib/main.js"(exports, module2) {
+    var fs = require("fs");
+    var path = require("path");
+    var os = require("os");
+    var packageJson = require_package();
+    var version = packageJson.version;
+    var LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg;
+    function parse(src) {
+      const obj = {};
+      let lines = src.toString();
+      lines = lines.replace(/\r\n?/mg, "\n");
+      let match;
+      while ((match = LINE.exec(lines)) != null) {
+        const key = match[1];
+        let value = match[2] || "";
+        value = value.trim();
+        const maybeQuote = value[0];
+        value = value.replace(/^(['"`])([\s\S]*)\1$/mg, "$2");
+        if (maybeQuote === '"') {
+          value = value.replace(/\\n/g, "\n");
+          value = value.replace(/\\r/g, "\r");
+        }
+        obj[key] = value;
+      }
+      return obj;
+    }
+    function _log(message) {
+      console.log(`[dotenv@${version}][DEBUG] ${message}`);
+    }
+    function _resolveHome(envPath) {
+      return envPath[0] === "~" ? path.join(os.homedir(), envPath.slice(1)) : envPath;
+    }
+    function config2(options) {
+      let dotenvPath = path.resolve(process.cwd(), ".env");
+      let encoding = "utf8";
+      const debug = Boolean(options && options.debug);
+      const override = Boolean(options && options.override);
+      if (options) {
+        if (options.path != null) {
+          dotenvPath = _resolveHome(options.path);
+        }
+        if (options.encoding != null) {
+          encoding = options.encoding;
+        }
+      }
+      try {
+        const parsed = DotenvModule.parse(fs.readFileSync(dotenvPath, { encoding }));
+        Object.keys(parsed).forEach(function(key) {
+          if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
+            process.env[key] = parsed[key];
+          } else {
+            if (override === true) {
+              process.env[key] = parsed[key];
+            }
+            if (debug) {
+              if (override === true) {
+                _log(`"${key}" is already defined in \`process.env\` and WAS overwritten`);
+              } else {
+                _log(`"${key}" is already defined in \`process.env\` and was NOT overwritten`);
+              }
+            }
+          }
+        });
+        return { parsed };
+      } catch (e) {
+        if (debug) {
+          _log(`Failed to load ${dotenvPath} ${e.message}`);
+        }
+        return { error: e };
+      }
+    }
+    var DotenvModule = {
+      config: config2,
+      parse
+    };
+    module2.exports.config = DotenvModule.config;
+    module2.exports.parse = DotenvModule.parse;
+    module2.exports = DotenvModule;
   }
 });
 
@@ -7427,12 +7427,20 @@ var require_github = __commonJS({
 });
 
 // src/main.ts
+var import_exec8 = __toESM(require_exec());
 var import_dotenv = __toESM(require_main());
-var import_exec7 = __toESM(require_exec());
 var import_fs5 = require("fs");
 
-// src/utils/prRelease.ts
-var import_exec2 = __toESM(require_exec());
+// src/utils/Env.ts
+var Env = {
+  thisBranch: process.env.GITHUB_REF_NAME,
+  thisPrBranch: process.env.GITHUB_BASE_REF
+};
+
+// src/utils/pipeLog.ts
+function pipeLog(message) {
+  console.log(`\u{1F33A} ${message}`);
+}
 
 // src/utils/canCommit.ts
 var import_exec = __toESM(require_exec());
@@ -7452,43 +7460,51 @@ function catchErrorLog(error) {
   }
 }
 
-// src/utils/Env.ts
-var Env = {
-  thisBranch: process.env.GITHUB_REF_NAME,
-  thisPrBranch: process.env.GITHUB_BASE_REF
-};
-
-// src/utils/getChangelogEntry.ts
-var import_fs = require("fs");
-function getChangelogEntry(version) {
-  const changelog = (0, import_fs.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
-  const start = 2 + changelog.indexOf(`## ${version}`);
-  const end = start + 1 + changelog.slice(start + 1).findIndex((line) => line.startsWith("## "));
-  const section = changelog.slice(start, end);
-  return section.join("\n");
-}
-
 // src/utils/getJson.ts
-var import_fs2 = require("fs");
+var import_fs = require("fs");
 function getJson(file = "./package.json") {
-  return JSON.parse((0, import_fs2.readFileSync)(file, "utf-8"));
+  return JSON.parse((0, import_fs.readFileSync)(file, "utf-8"));
 }
 
 // src/utils/prependToReadme.ts
 var import_github = __toESM(require_github());
-var import_fs3 = require("fs");
+var import_fs2 = require("fs");
 function prependToReadme(branch) {
   const readmePath = "./README.md";
-  let readme = (0, import_fs3.readFileSync)(readmePath, "utf-8");
+  let readme = (0, import_fs2.readFileSync)(readmePath, "utf-8");
   if (!readme.startsWith(":octocat:")) {
     readme = `:octocat: Created by github-bot. Delete this line to trigger PR actions
 
 ${readme}`;
-    (0, import_fs3.writeFileSync)(readmePath, readme);
+    (0, import_fs2.writeFileSync)(readmePath, readme);
   }
   return `
 
 :octocat: Delete [bot note](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/edit/${branch}/README.md#L1-L2) to trigger PR actions`;
+}
+
+// src/utils/upsertPrBranch.ts
+var import_exec2 = __toESM(require_exec());
+async function upsertBranch({ sourceBranch, prBranch }) {
+  await (0, import_exec2.exec)("git reset --hard");
+  await (0, import_exec2.exec)(`git checkout ${sourceBranch}`);
+  await (0, import_exec2.exec)(`git checkout -b ${prBranch}`);
+  await (0, import_exec2.exec)(`git merge ${sourceBranch} --no-edit --no-commit`);
+}
+
+// src/utils/setReleaseMode.ts
+var import_exec3 = __toESM(require_exec());
+var import_fs3 = require("fs");
+async function setReleaseMode(asBranch) {
+  try {
+    const isInPreMode = (0, import_fs3.existsSync)("./.changeset/pre.json");
+    if (isInPreMode && asBranch === "main")
+      await (0, import_exec3.exec)(`yarn changeset pre exit`);
+    if (!isInPreMode && asBranch === "dev")
+      await (0, import_exec3.exec)(`yarn changeset pre enter next`);
+  } catch (e) {
+    catchErrorLog(e);
+  }
 }
 
 // src/utils/upsertPr.ts
@@ -7540,93 +7556,28 @@ async function upsertPr({ baseBranch, prBranch, title, body }) {
   }
 }
 
-// src/utils/prRelease.ts
-async function prRelease({
-  prBranch = `release/${Env.thisBranch}-release`,
-  baseBranch = Env.thisBranch,
-  title = `Upcoming _version_ release (\`${baseBranch}\`)`
-}) {
-  try {
-    await (0, import_exec2.exec)("yarn changeset version");
-    await (0, import_exec2.exec)(`git checkout -b ${prBranch}`);
-    await (0, import_exec2.exec)("git restore .changeset/config.json");
-    const version = getJson().version;
-    if (!await canCommit()) {
-      console.log("nothing to commit.");
-      return;
-    }
-    const botNote = prependToReadme(prBranch);
-    await (0, import_exec2.exec)("git add .");
-    await (0, import_exec2.exec)(`git commit -m "(chore) changeset bump to ${version}"`);
-    await (0, import_exec2.exec)(`git push origin ${prBranch} --force`);
-    title = title.replace("_version_", `\`${version}\``);
-    const body = getChangelogEntry(version) + botNote;
-    await upsertPr({ baseBranch, prBranch, title, body });
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-
-// src/utils/prNextToMainRelease.ts
+// src/utils/commitAndPush.ts
 var import_exec4 = __toESM(require_exec());
-
-// src/utils/setReleaseMode.ts
-var import_exec3 = __toESM(require_exec());
-var import_fs4 = require("fs");
-async function setReleaseMode(asBranch) {
-  try {
-    const isInPreMode = (0, import_fs4.existsSync)("./.changeset/pre.json");
-    if (isInPreMode && asBranch === "main")
-      await (0, import_exec3.exec)(`yarn changeset pre exit`);
-    if (!isInPreMode && asBranch === "dev")
-      await (0, import_exec3.exec)(`yarn changeset pre enter next`);
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-
-// src/utils/prNextToMainRelease.ts
-async function prNextToMainRelease() {
-  try {
-    await (0, import_exec4.exec)("git reset --hard");
-    await (0, import_exec4.exec)("git checkout next");
-    await setReleaseMode("main");
-    await prRelease({
-      prBranch: "release/next-to-main-release",
-      baseBranch: "main",
-      title: ":warning: Upcoming _version_ Release (`next` to `main`)"
-    });
-  } catch (e) {
-    catchErrorLog(e);
-  }
-}
-
-// src/utils/pipeLog.ts
-function pipeLog(message) {
-  console.log(`\u{1F33A} ${message}`);
+async function commitAndPush({ branch, message = `update ${branch}` }) {
+  await (0, import_exec4.exec)("git add .");
+  await (0, import_exec4.exec)(`git commit -m "update ${message}"`);
+  await (0, import_exec4.exec)(`git push origin ${branch} --force`);
 }
 
 // src/utils/prMainToNext.ts
-var import_exec5 = __toESM(require_exec());
 async function prMainToNext() {
   try {
     const sourceBranch = "main";
     const baseBranch = "next";
     const prBranch = "sync/main-to-next";
-    await (0, import_exec5.exec)("git reset --hard");
-    await (0, import_exec5.exec)(`git checkout ${sourceBranch}`);
-    await (0, import_exec5.exec)(`git checkout -b ${prBranch}`);
-    await (0, import_exec5.exec)(`git merge ${sourceBranch} --no-edit --no-commit`);
+    await upsertBranch({ sourceBranch, prBranch });
     await setReleaseMode("next");
-    await (0, import_exec5.exec)("git restore .changeset/config.json");
     if (!await canCommit()) {
       console.log("nothing to commit.");
       return;
     }
     const botNote = prependToReadme(prBranch);
-    await (0, import_exec5.exec)("git add .");
-    await (0, import_exec5.exec)('git commit -m "prep main-to-next"');
-    await (0, import_exec5.exec)(`git push origin ${prBranch} --force`);
+    await commitAndPush({ branch: prBranch });
     const version = getJson().version;
     const title = `:arrow_down: (sync) merge \`main@${version}\` back into \`next\``;
     const body = botNote;
@@ -7636,21 +7587,84 @@ async function prMainToNext() {
   }
 }
 
-// src/utils/release.ts
+// src/utils/prNextToMainRelease.ts
+var import_exec5 = __toESM(require_exec());
+
+// src/utils/getChangelogEntry.ts
+var import_fs4 = require("fs");
+function getChangelogEntry(version) {
+  const changelog = (0, import_fs4.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
+  const start = 2 + changelog.indexOf(`## ${version}`);
+  const end = start + 1 + changelog.slice(start + 1).findIndex((line) => line.startsWith("## "));
+  const section = changelog.slice(start, end);
+  return section.join("\n");
+}
+
+// src/utils/prNextToMainRelease.ts
+async function prNextToMainRelease() {
+  try {
+    const sourceBranch = "next";
+    const baseBranch = "main";
+    const prBranch = "release/next-to-main-release";
+    await upsertBranch({ sourceBranch, prBranch });
+    await setReleaseMode("main");
+    await (0, import_exec5.exec)("yarn changeset version");
+    if (!await canCommit()) {
+      console.log("nothing to commit.");
+      return;
+    }
+    const botNote = prependToReadme(prBranch);
+    await commitAndPush({ branch: prBranch });
+    const version = getJson().version;
+    const title = `:warning: Upcoming \`${version}\` release (\`next\` to \`main\`)`;
+    const body = getChangelogEntry(version) + botNote;
+    await upsertPr({ baseBranch, prBranch, title, body });
+  } catch (e) {
+    catchErrorLog(e);
+  }
+}
+
+// src/utils/prRelease.ts
 var import_exec6 = __toESM(require_exec());
+async function prRelease() {
+  try {
+    const sourceBranch = Env.thisBranch;
+    const baseBranch = sourceBranch;
+    const prBranch = `release/${sourceBranch}-release`;
+    await upsertBranch({ sourceBranch, prBranch });
+    await (0, import_exec6.exec)("yarn changeset version");
+    if (!await canCommit()) {
+      console.log("nothing to commit.");
+      return;
+    }
+    const botNote = prependToReadme(prBranch);
+    await commitAndPush({ branch: prBranch });
+    const version = getJson().version;
+    let title = `Upcoming \`${version}\` release (\`${baseBranch}\`)`;
+    if (baseBranch === "main")
+      title = `:warning: ${title}`;
+    const body = getChangelogEntry(version) + botNote;
+    await upsertPr({ baseBranch, prBranch, title, body });
+  } catch (e) {
+    catchErrorLog(e);
+  }
+}
+
+// src/utils/release.ts
+var import_exec7 = __toESM(require_exec());
 var import_github5 = __toESM(require_github());
 async function release() {
   const { version, name } = getJson();
   let npmReleased = false;
   try {
-    const publishedNpmVersions = await (0, import_exec6.getExecOutput)(`npm view ${name} version`);
+    const publishedNpmVersions = await (0, import_exec7.getExecOutput)(`npm view ${name} version`);
     npmReleased = publishedNpmVersions.stdout.split("\n").includes(version);
   } catch (e) {
     catchErrorLog(e);
   }
   try {
     if (!npmReleased)
-      await (0, import_exec6.exec)("yarn changeset publish");
+      await (0, import_exec7.exec)("yarn changeset publish");
   } catch (e) {
     catchErrorLog(e);
   }
@@ -7699,20 +7713,20 @@ async function runCD() {
   await setGitConfig();
   pipeLog("release");
   await release();
-  pipeLog("createBumpPR");
-  await prRelease({});
+  pipeLog("prRelease");
+  await prRelease();
   if (Env.thisBranch === "main") {
     pipeLog("prMainToNext");
     await prMainToNext();
   }
   if (Env.thisBranch === "next") {
-    pipeLog("createNextToMainBumpPR");
+    pipeLog("prNextToMainRelease");
     await prNextToMainRelease();
   }
 }
 async function setGitConfig() {
-  await (0, import_exec7.exec)("git config user.name github-actions");
-  await (0, import_exec7.exec)("git config user.email github-actions@github.com");
+  await (0, import_exec8.exec)("git config user.name github-actions");
+  await (0, import_exec8.exec)("git config user.email github-actions@github.com");
 }
 /*!
  * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
