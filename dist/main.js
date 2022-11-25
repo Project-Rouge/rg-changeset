@@ -7446,7 +7446,7 @@ function deleteMeMessage(branch) {
     "\n\n:warning::warning::warning:",
     `:octocat: Delete [bot note](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/blob/${branch}/${deleteFile}) before merging.`,
     ":warning::warning::warning:"
-  ].join("\n\n");
+  ].join("\n\n").normalize();
 }
 
 // src/deleteMeUtils/addDeleteMeFile.ts
@@ -7514,7 +7514,8 @@ async function hasPrDeleteMeMessage({ baseBranch, prBranch }) {
   console.log(pr.body);
   console.log("--vs--");
   console.log(message);
-  const body = `${pr.body || ""}`.split("\n").join("\n");
+  const body = `${pr.body || ""}`.normalize();
+  console.log(body.split("\n").length);
   const hasMessage = body.includes(message);
   console.log(`hasMessage: ${hasMessage}`);
   console.log(`and now?: ${body.includes(message.trim())}`);

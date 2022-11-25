@@ -6,5 +6,5 @@ export function deleteMeMessage(branch: string) {
     "\n\n:warning::warning::warning:",
     `:octocat: Delete [bot note](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/${branch}/${deleteFile}) before merging.`,
     ":warning::warning::warning:",
-  ].join('\n\n');
+  ].join('\n\n').normalize();
 }
