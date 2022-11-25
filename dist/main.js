@@ -7431,6 +7431,11 @@ var import_dotenv = __toESM(require_main());
 var import_exec8 = __toESM(require_exec());
 var import_fs6 = require("fs");
 
+// src/utils/pipeLog.ts
+function pipeLog(message) {
+  console.log(`\u{1F33A} ${message}`);
+}
+
 // src/deleteMeUtils/addDeleteMeFile.ts
 var import_fs = require("fs");
 
@@ -7550,9 +7555,12 @@ async function removePrDeleteMeMessage({ baseBranch, prBranch }) {
 
 // src/deleteMeUtils/updatePrDeleteMeStatus.ts
 async function updatePrDeleteMeStatus({ baseBranch, prBranch }) {
+  pipeLog("deleteMeFileExists");
   if (deleteMeFileExists())
     throw new Error(`You need to manually delete \`${deleteFile}\``);
+  pipeLog("hasPrDeleteMeMessage");
   if (await hasPrDeleteMeMessage({ baseBranch, prBranch })) {
+    pipeLog("removePrDeleteMeMessage");
     await removePrDeleteMeMessage({ baseBranch, prBranch });
   }
 }
@@ -7566,11 +7574,6 @@ var Env = class {
     return process.env.GITHUB_BASE_REF;
   }
 };
-
-// src/utils/pipeLog.ts
-function pipeLog(message) {
-  console.log(`\u{1F33A} ${message}`);
-}
 
 // src/utils/commitAndPush.ts
 var import_exec = __toESM(require_exec());
@@ -7751,6 +7754,7 @@ if (Env.thisPrBranch)
 else
   runCD();
 async function runPR() {
+  pipeLog("runPR");
   const pre = ".changeset/pre.json";
   const isPreRelease = (0, import_fs6.existsSync)(pre);
   if (!isPreRelease && Env.thisPrBranch === "next") {
@@ -7759,6 +7763,7 @@ async function runPR() {
   if (isPreRelease && Env.thisPrBranch === "main") {
     throw new Error(`PR is in pre-release mode. Forgot to run \`yarn changeset pre exit\`?`);
   }
+  pipeLog("updatePrDeleteMeStatus");
   await updatePrDeleteMeStatus({ baseBranch: Env.thisPrBranch, prBranch: Env.thisBranch });
 }
 async function runCD() {
