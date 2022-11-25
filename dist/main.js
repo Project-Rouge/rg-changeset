@@ -7578,7 +7578,7 @@ async function updatePrDeleteMeStatus({ baseBranch, prBranch }) {
 // src/utils/Env.ts
 var Env = class {
   static get thisBranch() {
-    return process.env.GITHUB_HEAD_REF;
+    return process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME;
   }
   static get thisPrBranch() {
     return process.env.GITHUB_BASE_REF;
