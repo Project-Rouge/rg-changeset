@@ -7460,6 +7460,14 @@ function catchErrorLog(error) {
   }
 }
 
+// src/utils/commitAndPush.ts
+var import_exec2 = __toESM(require_exec());
+async function commitAndPush({ branch, message = `update ${branch}` }) {
+  await (0, import_exec2.exec)("git add .");
+  await (0, import_exec2.exec)(`git commit -m "update ${message}"`);
+  await (0, import_exec2.exec)(`git push origin ${branch} --force`);
+}
+
 // src/utils/getJson.ts
 var import_fs = require("fs");
 function getJson(file = "./package.json") {
@@ -7481,15 +7489,6 @@ ${readme}`;
   return `
 
 :octocat: Delete [bot note](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/edit/${branch}/README.md#L1-L2) to trigger PR actions`;
-}
-
-// src/utils/upsertPrBranch.ts
-var import_exec2 = __toESM(require_exec());
-async function upsertBranch({ sourceBranch, prBranch }) {
-  await (0, import_exec2.exec)("git reset --hard");
-  await (0, import_exec2.exec)(`git checkout ${sourceBranch}`);
-  await (0, import_exec2.exec)(`git checkout -B ${prBranch}`);
-  await (0, import_exec2.exec)(`git merge ${sourceBranch} --no-edit --no-commit`);
 }
 
 // src/utils/setReleaseMode.ts
@@ -7556,12 +7555,12 @@ async function upsertPr({ baseBranch, prBranch, title, body }) {
   }
 }
 
-// src/utils/commitAndPush.ts
+// src/utils/upsertPrBranch.ts
 var import_exec4 = __toESM(require_exec());
-async function commitAndPush({ branch, message = `update ${branch}` }) {
-  await (0, import_exec4.exec)("git add .");
-  await (0, import_exec4.exec)(`git commit -m "update ${message}"`);
-  await (0, import_exec4.exec)(`git push origin ${branch} --force`);
+async function upsertBranch({ sourceBranch, prBranch }) {
+  await (0, import_exec4.exec)("git reset --hard");
+  await (0, import_exec4.exec)(`git checkout ${sourceBranch}`);
+  await (0, import_exec4.exec)(`git checkout -B ${prBranch}`);
 }
 
 // src/utils/prMainToNext.ts
