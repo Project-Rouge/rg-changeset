@@ -1,5 +1,48 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.5
+
+### Patch Changes
+
+- 533a8b5: fix main to dev pr update
+
+## 0.1.4
+
+### Patch Changes
+
+- a472182: fix: old PRs don't update
+
+## 0.1.3
+
+### Patch Changes
+
+- 107398c: fix: pr main to next
+
+## 0.1.2
+
+### Patch Changes
+
+- 66db0d0: fix: pr main to next not using latest main on subsequent prs
+
+## 0.1.1
+
+### Patch Changes
+
+- 767de90: fix can commit triggering false negatives
+- e2657ad: fix: prerelease mode triggering in the wrong places
+
+## 0.1.0
+
+### Minor Changes
+
+- c1debfc: add line to be deleted to trigger PR actions
+- 43beb6b: Sync PR to update next with main now includes pre mode
+
+### Patch Changes
+
+- ddd963c: fix: skip if there is nothing to commit
+- 0d1f18a: chore: remove noisy logs
+
 ## 0.1.0-next.2
 
 ### Minor Changes

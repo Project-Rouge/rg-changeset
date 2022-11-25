@@ -1,14 +1,13 @@
-import { config } from "dotenv";
-process.env.GITHUB_REF || config();
 import { exec } from '@actions/exec';
+import { config } from "dotenv";
 import { existsSync } from 'fs';
-import { createBumpPR } from "./utils/createBumpPR";
-import { createNextToMainBumpPR } from "./utils/createNextToMainBumpPR";
 import { Env } from "./utils/Env";
 import { pipeLog } from "./utils/pipeLog";
 import { prMainToNext } from "./utils/prMainToNext";
+import { prNextToMainRelease } from "./utils/prNextToMainRelease";
+import { prRelease } from "./utils/prRelease";
 import { release } from "./utils/release";
-import { setReleaseMode } from "./utils/setReleaseMode";
+process.env.GITHUB_REF || config();
 
 if (Env.thisPrBranch) runPR();
 else runCD();
@@ -29,20 +28,21 @@ async function runCD() {
   pipeLog('setGitConfig');
   await setGitConfig();
 
-  pipeLog('setReleaseMode');
-  await setReleaseMode();
-
   pipeLog('release');
   await release();
 
-  pipeLog('prMainToNext');
-  await prMainToNext();
+  pipeLog('prRelease');
+  await prRelease();
 
-  pipeLog('createBumpPR');
-  await createBumpPR({});
+  if (Env.thisBranch === 'main') {
+    pipeLog('prMainToNext');
+    await prMainToNext();
+  }
 
-  pipeLog('createNextToMainBumpPR');
-  await createNextToMainBumpPR();
+  if (Env.thisBranch === 'next') {
+    pipeLog('prNextToMainRelease');
+    await prNextToMainRelease();
+  }
 
 }
 

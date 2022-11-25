@@ -1,13 +1,14 @@
 {
   "name": "@project-rouge/rg-changeset-action",
-  "version": "0.1.0-next.2",
+  "version": "0.1.5",
   "repository": "https://github.com/Project-Rouge/rg-changeset-action",
   "author": "modulous",
   "license": "UNLICENSED",
   "description": "Github action to handle changesets in rg-suite",
   "main": "dist/main.js",
   "scripts": {
-    "build": "esbuild src/main.ts --bundle --platform=node --target=node16 --outfile=dist/main.js"
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node16 --outfile=dist/main.js",
+    "build:dev": "esbuild src/main.ts --bundle --platform=node --target=node16 --outfile=build/main.js"
   },
   "dependencies": {
     "@actions/exec": "^1.1.1",
