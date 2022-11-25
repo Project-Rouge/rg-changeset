@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.1.6
+
+### Patch Changes
+
+- 36629ca: ignore changeset/pre.json when deciding to PR or not
+
 ## 0.1.5
 
 ### Patch Changes
