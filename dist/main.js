@@ -7438,7 +7438,9 @@ var import_github4 = __toESM(require_github());
 // src/utils/canCommit.ts
 var import_exec = __toESM(require_exec());
 async function canCommit() {
-  return (await (0, import_exec.getExecOutput)("git diff", [], { silent: true })).stdout.trim().length !== 0;
+  let itCan = (await (0, import_exec.getExecOutput)("git diff", [], { silent: true })).stdout.trim().length !== 0;
+  itCan = itCan || (await (0, import_exec.getExecOutput)("git ls-files -o --exclude-standard", [], { silent: true })).stdout.trim().length !== 0;
+  return itCan;
 }
 
 // src/utils/catchErrorLog.ts
