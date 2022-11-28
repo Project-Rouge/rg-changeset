@@ -1,7 +1,7 @@
 {
-  "name": "@project-rouge/rg-changeset-action",
+  "name": "@project-rouge/rg-changeset",
   "version": "0.3.1",
-  "repository": "https://github.com/Project-Rouge/rg-changeset-action",
+  "repository": "https://github.com/Project-Rouge/rg-changeset",
   "author": "modulous",
   "license": "UNLICENSED",
   "description": "Github action to handle changesets in rg-suite",
