@@ -14,7 +14,7 @@ export async function getPR({ baseBranch, prBranch }: getPrProps) {
       ...context.repo,
       state: 'open',
       base: baseBranch,
-      head: prBranch,
+      head: `ref:${prBranch}`,
     })).data[0];
     return pr;
   } catch (e) {
