@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset
 
+## 1.0.0
+
+### Major Changes
+
+- 00205a3: rename to rg-changeset
+
 ## 0.3.1
 
 ### Patch Changes
