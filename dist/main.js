@@ -7451,7 +7451,8 @@ var import_fs = require("fs");
 // src/utils/Globals.ts
 var Globals = {
   actionRepo: "https://github.com/Project-Rouge/rg-changeset",
-  mdLink: `[rg-changeset](https://github.com/Project-Rouge/rg-changeset)`
+  mdLink: `[rg-changeset](https://github.com/Project-Rouge/rg-changeset)`,
+  org: "Project-Rouge"
 };
 
 // src/deleteMeUtils/deleteMePrMessage.ts
@@ -7529,7 +7530,7 @@ async function getPR({ baseBranch, prBranch }) {
       ...import_github3.context.repo,
       state: "open",
       base: baseBranch,
-      head: `ref:${prBranch}`
+      head: `${Globals.org}:${prBranch}`
     })).data[0];
     return pr;
   } catch (e) {
