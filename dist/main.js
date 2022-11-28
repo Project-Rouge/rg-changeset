@@ -7457,7 +7457,7 @@ var Globals = {
 // src/deleteMeUtils/deleteMePrMessage.ts
 var import_github = __toESM(require_github());
 function deleteMeMessage(branch, onlyMainMessage = false) {
-  const mainMessage = `:octocat: Delete [action note](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/blob/${branch}/${deleteFile}) before merging.`;
+  const mainMessage = `:octocat: Delete [action note](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/delete/${branch}/${deleteFile}) before merging.`;
   if (onlyMainMessage)
     return mainMessage;
   return [
