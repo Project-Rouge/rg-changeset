@@ -4,5 +4,7 @@
   "initialVersions": {
     "@project-rouge/rg-changeset-action": "0.2.0"
   },
-  "changesets": []
+  "changesets": [
+    "few-rules-greet"
+  ]
 }
