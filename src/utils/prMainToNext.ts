@@ -27,7 +27,7 @@ export async function prMainToNext() {
 
     const title = `:arrow_down: (sync) merge \`main@${version}\` back into \`next\``;
 
-    const prNote = getPrMessage(PrType.sync);
+    const prNote = getPrMessage('main', PrType.sync);
     const body = `${prNote}\n\n${deleteMeNote}`;
 
     await upsertPr({ baseBranch, prBranch, title, body });

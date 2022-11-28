@@ -21,8 +21,8 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - run: yarn build:dev
-      - name: "rg-changeset-action"
-        id: "rg-changeset-action"
+      - name: "rg-changeset"
+        id: "rg-changeset"
         uses: ./.github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

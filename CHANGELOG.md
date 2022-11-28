@@ -1,4 +1,28 @@
-# @project-rouge/rg-changeset-action
+# @project-rouge/rg-changeset
+
+## 1.0.1
+
+### Patch Changes
+
+- f3947e3: fix: main to next pr
+
+## 1.0.0
+
+### Major Changes
+
+- 00205a3: rename to rg-changeset
+
+## 0.3.1
+
+### Patch Changes
+
+- 6499715: use delete URL instead of blob URL for DELETE_ME.md
+
+## 0.3.0
+
+### Minor Changes
+
+- b63663d: add check to fail if DELETE_ME.md file is found
 
 ## 0.2.0
 
