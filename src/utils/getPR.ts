@@ -1,6 +1,7 @@
 import { context } from '@actions/github';
 import { catchErrorLog } from "./catchErrorLog";
 import { getGithubKit } from "./getGithubKit";
+import { Globals } from './Globals';
 
 interface getPrProps {
   baseBranch: string;
@@ -14,7 +15,7 @@ export async function getPR({ baseBranch, prBranch }: getPrProps) {
       ...context.repo,
       state: 'open',
       base: baseBranch,
-      head: prBranch,
+      head: `${Globals.org}:${prBranch}`,
     })).data[0];
     return pr;
   } catch (e) {

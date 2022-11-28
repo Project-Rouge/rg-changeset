@@ -7451,7 +7451,8 @@ var import_fs = require("fs");
 // src/utils/Globals.ts
 var Globals = {
   actionRepo: "https://github.com/Project-Rouge/rg-changeset",
-  mdLink: `[rg-changeset](https://github.com/Project-Rouge/rg-changeset)`
+  mdLink: `[rg-changeset](https://github.com/Project-Rouge/rg-changeset)`,
+  org: "Project-Rouge"
 };
 
 // src/deleteMeUtils/deleteMePrMessage.ts
@@ -7529,7 +7530,7 @@ async function getPR({ baseBranch, prBranch }) {
       ...import_github3.context.repo,
       state: "open",
       base: baseBranch,
-      head: prBranch
+      head: `${Globals.org}:${prBranch}`
     })).data[0];
     return pr;
   } catch (e) {
@@ -7541,7 +7542,7 @@ async function getPR({ baseBranch, prBranch }) {
 async function hasPrDeleteMeMessage({ baseBranch, prBranch }) {
   const pr = await getPR({ baseBranch, prBranch });
   const message = deleteMeMessage(prBranch, true);
-  const body = pr.body || "";
+  const body = (pr == null ? void 0 : pr.body) || "";
   const hasMessage = body.includes(message);
   return hasMessage;
 }
