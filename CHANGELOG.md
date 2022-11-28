@@ -1,4 +1,4 @@
-# @project-rouge/rg-changeset-action
+# @project-rouge/rg-changeset
 
 ## 0.3.1
 

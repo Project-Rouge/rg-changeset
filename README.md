@@ -1,4 +1,4 @@
-# rg-changeset-action
+# rg-changeset
 
 Github action to handle changesets in `rg-suite`.
 
