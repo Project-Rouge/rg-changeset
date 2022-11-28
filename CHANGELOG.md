@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset
 
+## 1.0.1
+
+### Patch Changes
+
+- f3947e3: fix: main to next pr
+
 ## 1.0.0
 
 ### Major Changes
