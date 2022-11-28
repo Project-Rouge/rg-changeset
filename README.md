@@ -1,8 +1,11 @@
 # rg-changeset-action
 
+Github action to handle changesets in `rg-suite`.
+
 :package: [npm](https://www.npmjs.com/package/@project-rouge/rg-changeset-action)
 
-Github action to handle changesets in `rg-suite`.
+The NPM package does nothing, but is a quick way to test that the release process works.
+
 
 ## How to use
 
