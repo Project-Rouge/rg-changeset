@@ -7451,13 +7451,14 @@ var import_fs = require("fs");
 // src/utils/Globals.ts
 var Globals = {
   actionRepo: "https://github.com/Project-Rouge/rg-changeset",
-  mdLink: `[rg-changeset](https://github.com/Project-Rouge/rg-changeset)`
+  mdLink: `[rg-changeset](https://github.com/Project-Rouge/rg-changeset)`,
+  org: "Project-Rouge"
 };
 
 // src/deleteMeUtils/deleteMePrMessage.ts
 var import_github = __toESM(require_github());
 function deleteMeMessage(branch, onlyMainMessage = false) {
-  const mainMessage = `:octocat: Delete [action note](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/blob/${branch}/${deleteFile}) before merging.`;
+  const mainMessage = `:octocat: Delete [action note](https://github.com/${import_github.context.repo.owner}/${import_github.context.repo.repo}/delete/${branch}/${deleteFile}) before merging.`;
   if (onlyMainMessage)
     return mainMessage;
   return [
@@ -7529,7 +7530,7 @@ async function getPR({ baseBranch, prBranch }) {
       ...import_github3.context.repo,
       state: "open",
       base: baseBranch,
-      head: prBranch
+      head: `${Globals.org}:${prBranch}`
     })).data[0];
     return pr;
   } catch (e) {
@@ -7541,7 +7542,7 @@ async function getPR({ baseBranch, prBranch }) {
 async function hasPrDeleteMeMessage({ baseBranch, prBranch }) {
   const pr = await getPR({ baseBranch, prBranch });
   const message = deleteMeMessage(prBranch, true);
-  const body = pr.body || "";
+  const body = (pr == null ? void 0 : pr.body) || "";
   const hasMessage = body.includes(message);
   return hasMessage;
 }
@@ -7550,8 +7551,10 @@ async function hasPrDeleteMeMessage({ baseBranch, prBranch }) {
 var import_github4 = __toESM(require_github());
 async function upsertPr({ baseBranch, prBranch, title, body }) {
   const octokit = getGithubKit();
+  console.log(`find PR ${prBranch} > ${baseBranch} `);
   const pr = await getPR({ baseBranch, prBranch });
   if (pr) {
+    console.log(`PR found: ${pr.number}`);
     await octokit.rest.pulls.update({
       ...import_github4.context.repo,
       pull_number: pr.number,
@@ -7559,6 +7562,7 @@ async function upsertPr({ baseBranch, prBranch, title, body }) {
       body
     });
   } else {
+    console.log(`PR not found, creating...`);
     await octokit.rest.pulls.create({
       ...import_github4.context.repo,
       head: prBranch,
@@ -7635,13 +7639,13 @@ function getJson(file = "./package.json") {
 }
 
 // src/utils/getPrMessage.ts
-function getPrMessage(prType = 0 /* release */) {
+function getPrMessage(branch, prType = 0 /* release */) {
   if (prType === 0 /* release */)
     return [
-      `This PR was opened by the ${Globals.mdLink} GitHub action. When you're ready to do a release, you can merge this and the packages will be published to npm automatically. If you're not ready to do a release yet, that's fine, whenever you add more changesets to next, this PR will be updated.`
+      `This PR was opened by the ${Globals.mdLink} GitHub action. When you're ready to do a release, you can merge this and the packages will be published to npm automatically. If you're not ready to do a release yet, that's fine, whenever you add more changesets to \`${branch}\`, this PR will be updated.`
     ].join("\n");
   return [
-    `This PR was opened by the ${Globals.mdLink} GitHub action. When you're ready to sync \`main\` into \`next\`, you can merge this. If you're not ready to sync these branches yet, that's fine, whenever you add more changes to \`main\`, this PR will be updated.`,
+    `This PR was opened by the ${Globals.mdLink} GitHub action. When you're ready to sync \`main\` into \`next\`, you can merge this. If you're not ready to sync these branches yet, that's fine, whenever you add more changes to \`${branch}\`, this PR will be updated.`,
     `If this PR has conflicts, follow [these instructions](${Globals.actionRepo}/blob/main/docs/main-to-next-conflicts.md) to solve them.`
   ].join("\n");
 }
@@ -7681,7 +7685,7 @@ async function prMainToNext() {
     await commitAndPush({ branch: prBranch });
     const version = getJson().version;
     const title = `:arrow_down: (sync) merge \`main@${version}\` back into \`next\``;
-    const prNote = getPrMessage(1 /* sync */);
+    const prNote = getPrMessage("main", 1 /* sync */);
     const body = `${prNote}
 
 ${deleteMeNote}`;
@@ -7731,7 +7735,7 @@ async function prNextToMainRelease() {
     await commitAndPush({ branch: prBranch });
     const version = getJson().version;
     const title = `:warning: Upcoming \`${version}\` release (\`next\` to \`main\`)`;
-    const prNote = getPrMessage();
+    const prNote = getPrMessage("next");
     const body = `${prNote}
 
 ${deleteMeNote}
@@ -7762,7 +7766,7 @@ async function prRelease() {
     let title = `Upcoming \`${version}\` release (\`${baseBranch}\`)`;
     if (baseBranch === "main")
       title = `:warning: ${title}`;
-    const prNote = getPrMessage();
+    const prNote = getPrMessage(sourceBranch);
     const body = `${prNote}
 
 ${deleteMeNote}

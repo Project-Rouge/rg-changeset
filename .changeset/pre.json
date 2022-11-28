@@ -2,7 +2,7 @@
   "mode": "pre",
   "tag": "next",
   "initialVersions": {
-    "@project-rouge/rg-changeset-action": "0.2.0"
+    "@project-rouge/rg-changeset": "1.0.1"
   },
   "changesets": []
 }

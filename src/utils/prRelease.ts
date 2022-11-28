@@ -34,7 +34,7 @@ export async function prRelease() {
     let title = `Upcoming \`${version}\` release (\`${baseBranch}\`)`;
     if (baseBranch === 'main') title = `:warning: ${title}`;
 
-    const prNote = getPrMessage();
+    const prNote = getPrMessage(sourceBranch);
     const body = `${prNote}\n\n${deleteMeNote}\n\n${getChangelogEntry(version)}`;
 
     await upsertPr({ baseBranch, prBranch, title, body })
