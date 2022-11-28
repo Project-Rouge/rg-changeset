@@ -1,7 +1,8 @@
+import { addDeleteMeFile } from '../deleteMeUtils/addDeleteMeFile';
 import { catchErrorLog } from "./catchErrorLog";
 import { commitAndPush } from './commitAndPush';
 import { getJson } from './getJson';
-import { prependToReadme } from './prependToReadme';
+import { getPrMessage, PrType } from './getPrMessage';
 import { setReleaseMode } from './setReleaseMode';
 import { upsertPr } from './upsertPr';
 import { upsertBranch } from './upsertPrBranch';
@@ -17,14 +18,17 @@ export async function prMainToNext() {
     await upsertBranch({ sourceBranch, prBranch });
 
     await setReleaseMode('next');
-    const botNote = prependToReadme(prBranch);
+
+    const deleteMeNote = addDeleteMeFile(prBranch);
 
     await commitAndPush({ branch: prBranch });
 
     const version = getJson().version;
 
     const title = `:arrow_down: (sync) merge \`main@${version}\` back into \`next\``;
-    const body = botNote;
+
+    const prNote = getPrMessage(PrType.sync);
+    const body = `${prNote}\n\n${deleteMeNote}`;
 
     await upsertPr({ baseBranch, prBranch, title, body });
   } catch (e) {

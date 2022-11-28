@@ -2,14 +2,21 @@ import { context } from '@actions/github';
 import { catchErrorLog } from "./catchErrorLog";
 import { getGithubKit } from "./getGithubKit";
 
-export async function getPR({ baseBranch, prBranch }: { baseBranch: string; prBranch: string; }) {
+interface getPrProps {
+  baseBranch: string;
+  prBranch: string;
+}
+
+export async function getPR({ baseBranch, prBranch }: getPrProps) {
   try {
     const octokit = getGithubKit();
-    const prList = await octokit.rest.pulls.list({
+    let pr = (await octokit.rest.pulls.list({
       ...context.repo,
       state: 'open',
-    });
-    return prList.data.find(pr => pr.base.ref === baseBranch && pr.head.ref === prBranch);
+      base: baseBranch,
+      head: prBranch,
+    })).data[0];
+    return pr;
   } catch (e) {
     catchErrorLog(e);
   }

@@ -1,11 +1,12 @@
 import { exec } from '@actions/exec';
+import { addDeleteMeFile } from '../deleteMeUtils/addDeleteMeFile';
 import { canCommit } from './canCommit';
 import { catchErrorLog } from "./catchErrorLog";
 import { commitAndPush } from './commitAndPush';
 import { Env } from './Env';
 import { getChangelogEntry } from "./getChangelogEntry";
 import { getJson } from "./getJson";
-import { prependToReadme } from './prependToReadme';
+import { getPrMessage } from './getPrMessage';
 import { upsertPr } from './upsertPr';
 import { upsertBranch } from './upsertPrBranch';
 
@@ -23,7 +24,8 @@ export async function prRelease() {
       console.log('nothing to commit.');
       return;
     }
-    const botNote = prependToReadme(prBranch);
+
+    const deleteMeNote = addDeleteMeFile(prBranch);
 
     await commitAndPush({ branch: prBranch });
 
@@ -31,7 +33,9 @@ export async function prRelease() {
 
     let title = `Upcoming \`${version}\` release (\`${baseBranch}\`)`;
     if (baseBranch === 'main') title = `:warning: ${title}`;
-    const body = getChangelogEntry(version) + botNote;
+
+    const prNote = getPrMessage();
+    const body = `${prNote}\n\n${deleteMeNote}\n\n${getChangelogEntry(version)}`;
 
     await upsertPr({ baseBranch, prBranch, title, body })
 
