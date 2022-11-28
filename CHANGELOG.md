@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.3.1
+
+### Patch Changes
+
+- 6499715: use delete URL instead of blob URL for DELETE_ME.md
+
 ## 0.3.0
 
 ### Minor Changes
