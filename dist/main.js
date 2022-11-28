@@ -7648,10 +7648,10 @@ async function prMainToNext() {
     const prBranch = "sync/main-to-next";
     await upsertBranch({ sourceBranch, prBranch });
     await setReleaseMode("next");
+    const deleteMeNote = addDeleteMeFile(prBranch);
     await commitAndPush({ branch: prBranch });
     const version = getJson().version;
     const title = `:arrow_down: (sync) merge \`main@${version}\` back into \`next\``;
-    const deleteMeNote = addDeleteMeFile(prBranch);
     const prNote = getPrMessage(1 /* sync */);
     const body = `${prNote}
 
@@ -7698,10 +7698,10 @@ async function prNextToMainRelease() {
       console.log("nothing to commit.");
       return;
     }
+    const deleteMeNote = addDeleteMeFile(prBranch);
     await commitAndPush({ branch: prBranch });
     const version = getJson().version;
     const title = `:warning: Upcoming \`${version}\` release (\`next\` to \`main\`)`;
-    const deleteMeNote = addDeleteMeFile(prBranch);
     const prNote = getPrMessage();
     const body = `${prNote}
 
@@ -7727,12 +7727,12 @@ async function prRelease() {
       console.log("nothing to commit.");
       return;
     }
+    const deleteMeNote = addDeleteMeFile(prBranch);
     await commitAndPush({ branch: prBranch });
     const version = getJson().version;
     let title = `Upcoming \`${version}\` release (\`${baseBranch}\`)`;
     if (baseBranch === "main")
       title = `:warning: ${title}`;
-    const deleteMeNote = addDeleteMeFile(prBranch);
     const prNote = getPrMessage();
     const body = `${prNote}
 

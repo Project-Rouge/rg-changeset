@@ -25,13 +25,14 @@ export async function prNextToMainRelease() {
       return;
     }
 
+    const deleteMeNote = addDeleteMeFile(prBranch);
+
     await commitAndPush({ branch: prBranch });
 
     const version = getJson().version;
 
     const title = `:warning: Upcoming \`${version}\` release (\`next\` to \`main\`)`;
 
-    const deleteMeNote = addDeleteMeFile(prBranch);
     const prNote = getPrMessage();
     const body = `${prNote}\n\n${deleteMeNote}\n\n${getChangelogEntry(version)}`;
 
