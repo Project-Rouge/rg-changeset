@@ -7541,7 +7541,7 @@ async function getPR({ baseBranch, prBranch }) {
 async function hasPrDeleteMeMessage({ baseBranch, prBranch }) {
   const pr = await getPR({ baseBranch, prBranch });
   const message = deleteMeMessage(prBranch, true);
-  const body = pr.body || "";
+  const body = (pr == null ? void 0 : pr.body) || "";
   const hasMessage = body.includes(message);
   return hasMessage;
 }
