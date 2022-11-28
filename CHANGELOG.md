@@ -1,5 +1,16 @@
 # @project-rouge/rg-changeset-action
 
+## 0.2.0
+
+### Minor Changes
+
+- 74e4551: add delete me file
+- dfc749a: add more details to PR message
+
+### Patch Changes
+
+- 6ec7a59: tweak: bot message
+
 ## 0.2.0-next.2
 
 ### Minor Changes

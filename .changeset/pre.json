@@ -2,11 +2,7 @@
   "mode": "pre",
   "tag": "next",
   "initialVersions": {
-    "@project-rouge/rg-changeset-action": "0.1.8"
+    "@project-rouge/rg-changeset-action": "0.2.0"
   },
-  "changesets": [
-    "fresh-boats-visit",
-    "orange-geese-destroy",
-    "spicy-cooks-rest"
-  ]
+  "changesets": []
 }
