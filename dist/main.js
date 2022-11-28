@@ -7553,7 +7553,7 @@ async function upsertPr({ baseBranch, prBranch, title, body }) {
   console.log(`find PR ${prBranch} > ${baseBranch} `);
   const pr = await getPR({ baseBranch, prBranch });
   if (pr) {
-    console.log(`pr found: ${pr.number}`);
+    console.log(`PR found: ${pr.number}`);
     await octokit.rest.pulls.update({
       ...import_github4.context.repo,
       pull_number: pr.number,
@@ -7561,7 +7561,7 @@ async function upsertPr({ baseBranch, prBranch, title, body }) {
       body
     });
   } else {
-    console.log(`pr not found, creating...`);
+    console.log(`PR not found, creating...`);
     await octokit.rest.pulls.create({
       ...import_github4.context.repo,
       head: prBranch,
