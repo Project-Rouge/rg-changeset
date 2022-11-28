@@ -5,6 +5,7 @@ import { catchErrorLog } from "./catchErrorLog";
 import { commitAndPush } from './commitAndPush';
 import { getChangelogEntry } from './getChangelogEntry';
 import { getJson } from './getJson';
+import { getPrMessage } from './getPrMessage';
 import { setReleaseMode } from "./setReleaseMode";
 import { upsertPr } from './upsertPr';
 import { upsertBranch } from './upsertPrBranch';
@@ -23,7 +24,6 @@ export async function prNextToMainRelease() {
       console.log('nothing to commit.');
       return;
     }
-    const botNote = addDeleteMeFile(prBranch);
 
     await commitAndPush({ branch: prBranch });
 
@@ -31,7 +31,9 @@ export async function prNextToMainRelease() {
 
     const title = `:warning: Upcoming \`${version}\` release (\`next\` to \`main\`)`;
 
-    const body = getChangelogEntry(version) + botNote;
+    const deleteMeNote = addDeleteMeFile(prBranch);
+    const prNote = getPrMessage();
+    const body = `${prNote}\n\n${deleteMeNote}\n\n${getChangelogEntry(version)}`;
 
     await upsertPr({ baseBranch, prBranch, title, body });
 
