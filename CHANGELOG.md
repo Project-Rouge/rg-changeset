@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.3.0
+
+### Minor Changes
+
+- b63663d: add check to fail if DELETE_ME.md file is found
+
 ## 0.2.0
 
 ### Minor Changes
