@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset-action
 
+## 0.2.0-next.2
+
+### Minor Changes
+
+- dfc749a: add more details to PR message
+
 ## 0.2.0-next.1
 
 ### Patch Changes
