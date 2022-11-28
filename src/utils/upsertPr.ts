@@ -14,15 +14,20 @@ export async function upsertPr({ baseBranch, prBranch, title, body }: upsertPrPr
 
   const octokit = getGithubKit();
 
+  console.log(`find PR ${prBranch} > ${baseBranch} `);
+
+
   const pr = await getPR({ baseBranch, prBranch });
 
   if (pr) {
+    console.log(`pr found: ${pr.number}`);
     await octokit.rest.pulls.update({
       ...context.repo,
       pull_number: pr.number,
       title, body
     })
   } else {
+    console.log(`pr not found, creating...`);
     await octokit.rest.pulls.create({
       ...context.repo,
       head: prBranch,
