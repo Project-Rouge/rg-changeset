@@ -19,13 +19,14 @@ export async function prMainToNext() {
 
     await setReleaseMode('next');
 
+    const deleteMeNote = addDeleteMeFile(prBranch);
+
     await commitAndPush({ branch: prBranch });
 
     const version = getJson().version;
 
     const title = `:arrow_down: (sync) merge \`main@${version}\` back into \`next\``;
 
-    const deleteMeNote = addDeleteMeFile(prBranch);
     const prNote = getPrMessage(PrType.sync);
     const body = `${prNote}\n\n${deleteMeNote}`;
 

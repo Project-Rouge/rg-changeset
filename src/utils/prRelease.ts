@@ -25,6 +25,8 @@ export async function prRelease() {
       return;
     }
 
+    const deleteMeNote = addDeleteMeFile(prBranch);
+
     await commitAndPush({ branch: prBranch });
 
     const version = getJson().version;
@@ -32,7 +34,6 @@ export async function prRelease() {
     let title = `Upcoming \`${version}\` release (\`${baseBranch}\`)`;
     if (baseBranch === 'main') title = `:warning: ${title}`;
 
-    const deleteMeNote = addDeleteMeFile(prBranch);
     const prNote = getPrMessage();
     const body = `${prNote}\n\n${deleteMeNote}\n\n${getChangelogEntry(version)}`;
 
