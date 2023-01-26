@@ -7440,7 +7440,7 @@ var Env = class {
 };
 
 // src/utils/prChecks.ts
-var import_fs3 = require("fs");
+var import_fs4 = require("fs");
 
 // src/deleteMeUtils/deleteMeFileExists.ts
 var import_fs2 = require("fs");
@@ -7607,6 +7607,14 @@ async function updatePrDeleteMeStatus({ baseBranch, prBranch }) {
 
 // src/utils/createSnapshotRelease.ts
 var import_exec = __toESM(require_exec());
+
+// src/utils/getJson.ts
+var import_fs3 = require("fs");
+function getJson(file = "./package.json") {
+  return JSON.parse((0, import_fs3.readFileSync)(file, "utf-8"));
+}
+
+// src/utils/createSnapshotRelease.ts
 async function createSnapshotRelease() {
   pipeLog("createSnapshotRelease");
   try {
@@ -7622,6 +7630,7 @@ async function createSnapshotRelease() {
     await (0, import_exec.exec)(`yarn changeset version --snapshot PR${pr.number}`);
     await (0, import_exec.exec)(`yarn changeset publish --no-git-tag --tag PR${pr.number}`);
     console.log("createSnapshotRelease: end");
+    console.log(`\u{1F4F8} You can install this snapshot with \`yarn add ${getJson().name}@PR${pr.number}\``);
   } catch (e) {
     catchErrorLog(e);
   }
@@ -7632,7 +7641,7 @@ async function prChecks() {
   pipeLog("prChecks");
   checkDeleteMeFile();
   const pre = ".changeset/pre.json";
-  const isPreRelease = (0, import_fs3.existsSync)(pre);
+  const isPreRelease = (0, import_fs4.existsSync)(pre);
   if (!isPreRelease && Env.thisPrBranch === "next") {
     throw new Error(`${pre} not found. Forgot to run \`yarn changeset pre enter next\`?`);
   }
@@ -7653,12 +7662,6 @@ async function commitAndPush({ branch, message = `update ${branch}` }) {
   await (0, import_exec2.exec)("git add .");
   await (0, import_exec2.exec)(`git commit -m "update ${message}"`);
   await (0, import_exec2.exec)(`git push origin ${branch} --force`);
-}
-
-// src/utils/getJson.ts
-var import_fs4 = require("fs");
-function getJson(file = "./package.json") {
-  return JSON.parse((0, import_fs4.readFileSync)(file, "utf-8"));
 }
 
 // src/utils/getPrMessage.ts
