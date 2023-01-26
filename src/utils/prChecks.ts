@@ -1,6 +1,7 @@
 import { existsSync } from "fs";
 import { checkDeleteMeFile } from "../deleteMeUtils/checkDeleteMeFile";
 import { updatePrDeleteMeStatus } from "../deleteMeUtils/updatePrDeleteMeStatus";
+import { createSnapshotRelease } from "./createSnapshotRelease";
 import { Env } from "./Env";
 import { pipeLog } from "./pipeLog";
 
@@ -19,5 +20,7 @@ export async function prChecks() {
   }
   pipeLog('updatePrDeleteMeStatus');
   await updatePrDeleteMeStatus({ baseBranch: Env.thisPrBranch, prBranch: Env.thisBranch });
+
+  createSnapshotRelease();
 
 }
