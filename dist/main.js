@@ -7610,20 +7610,18 @@ var import_exec = __toESM(require_exec());
 async function createSnapshotRelease() {
   pipeLog("createSnapshotRelease");
   try {
-    if (Env.thisPrBranch === "main")
-      return;
-    if (Env.thisPrBranch === "next")
-      return;
     const pr = await getPR({
       baseBranch: Env.thisPrBranch,
       prBranch: Env.thisBranch
     });
     if (!pr.title.includes("[snapshot]"))
       return;
+    console.log("createSnapshotRelease: start");
     await (0, import_exec.exec)("yarn changeset pre exit");
     await (0, import_exec.exec)(`yarn changeset version --snapshot PR${pr.number}`);
     await (0, import_exec.exec)(`yarn changeset version --snapshot PR${pr.number}`);
     await (0, import_exec.exec)(`yarn changeset publish --no-git-tag --tag PR${pr.number}`);
+    console.log("createSnapshotRelease: end");
   } catch (e) {
     catchErrorLog(e);
   }
