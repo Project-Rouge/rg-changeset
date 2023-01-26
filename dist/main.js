@@ -7630,7 +7630,7 @@ async function createSnapshotRelease() {
     await (0, import_exec.exec)(`yarn changeset version --snapshot PR${pr.number}`);
     await (0, import_exec.exec)(`yarn changeset publish --no-git-tag --tag PR${pr.number}`);
     console.log("createSnapshotRelease: end");
-    console.log(`\u{1F4F8} You can install this snapshot with \`yarn add ${getJson().name}@PR${pr.number}\``);
+    console.log(`\u{1F5BC} You can install this snapshot with \`yarn add ${getJson().name}@PR${pr.number}\``);
   } catch (e) {
     catchErrorLog(e);
   }
