@@ -4,7 +4,7 @@ import { Env } from "./Env";
 import { pipeLog } from "./pipeLog";
 import { prMainToNext } from "./prMainToNext";
 import { prNextToMainRelease } from "./prNextToMainRelease";
-import { prRelease } from "./prRelease";
+import { createReleasePR } from "./createReleasePR";
 import { release } from "./release";
 
 export async function runCD() {
@@ -17,8 +17,8 @@ export async function runCD() {
   pipeLog('release');
   await release();
 
-  pipeLog('prRelease');
-  await prRelease();
+  pipeLog('createReleasePR');
+  await createReleasePR();
 
   if (Env.thisBranch === 'main') {
     pipeLog('prMainToNext');

@@ -11,7 +11,7 @@ import { upsertPr } from './upsertPr';
 import { upsertBranch } from './upsertPrBranch';
 
 /** create a Bump PR that will trigger a release on merge (if possible) */
-export async function prRelease() {
+export async function createReleasePR() {
   try {
 
     const sourceBranch = Env.thisBranch;
