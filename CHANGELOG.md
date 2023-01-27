@@ -1,5 +1,13 @@
 # @project-rouge/rg-changeset
 
+## 1.1.0
+
+### Minor Changes
+
+- e48b8d9: Add snapshot release.
+
+  Whenever you create a PR, add `[snapshot]` to the title if you want `rg-changeset` to create a snapshot release from it.
+
 ## 1.0.1
 
 ### Patch Changes
