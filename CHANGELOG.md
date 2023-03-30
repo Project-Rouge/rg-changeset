@@ -1,5 +1,12 @@
 # @project-rouge/rg-changeset
 
+## 1.1.1
+
+### Patch Changes
+
+- f38247b: - Fix snapshot release on PRs to `main`.
+  - Add :rocket: (`main`) and :package: (`next`) emojis to release titles.
+
 ## 1.1.0
 
 ### Minor Changes
