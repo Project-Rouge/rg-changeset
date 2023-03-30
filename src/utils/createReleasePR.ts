@@ -30,9 +30,9 @@ export async function createReleasePR() {
     await commitAndPush({ branch: prBranch });
 
     const version = getJson().version;
+    const isMain = baseBranch === 'main';
 
-    let title = `Upcoming \`${version}\` release (\`${baseBranch}\`)`;
-    if (baseBranch === 'main') title = `:warning: ${title}`;
+    const title = `:${isMain ? 'rocket' : 'package'}: Upcoming \`${version}\` release (\`${baseBranch}\`)`;
 
     const prNote = getPrMessage(sourceBranch);
     const body = `${prNote}\n\n${deleteMeNote}\n\n${getChangelogEntry(version)}`;
