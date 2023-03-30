@@ -7440,7 +7440,7 @@ var Env = class {
 };
 
 // src/utils/prChecks.ts
-var import_fs4 = require("fs");
+var import_fs5 = require("fs");
 
 // src/deleteMeUtils/deleteMeFileExists.ts
 var import_fs2 = require("fs");
@@ -7614,6 +7614,12 @@ function getJson(file = "./package.json") {
   return JSON.parse((0, import_fs3.readFileSync)(file, "utf-8"));
 }
 
+// src/utils/isInPreReleaseMode.ts
+var import_fs4 = require("fs");
+function isInPreReleaseMode() {
+  return (0, import_fs4.existsSync)(".changeset/pre.json");
+}
+
 // src/utils/createSnapshotRelease.ts
 async function createSnapshotRelease() {
   pipeLog("createSnapshotRelease");
@@ -7625,7 +7631,8 @@ async function createSnapshotRelease() {
     if (!pr.title.includes("[snapshot]"))
       return;
     console.log("createSnapshotRelease: start");
-    await (0, import_exec.exec)("yarn changeset pre exit");
+    if (isInPreReleaseMode())
+      await (0, import_exec.exec)("yarn changeset pre exit");
     await (0, import_exec.exec)(`yarn changeset version --snapshot PR${pr.number}`);
     await (0, import_exec.exec)(`yarn changeset version --snapshot PR${pr.number}`);
     await (0, import_exec.exec)(`yarn changeset publish --no-git-tag --tag PR${pr.number}`);
@@ -7641,7 +7648,7 @@ async function prChecks() {
   pipeLog("prChecks");
   checkDeleteMeFile();
   const pre = ".changeset/pre.json";
-  const isPreRelease = (0, import_fs4.existsSync)(pre);
+  const isPreRelease = (0, import_fs5.existsSync)(pre);
   if (!isPreRelease && Env.thisPrBranch === "next") {
     throw new Error(`${pre} not found. Forgot to run \`yarn changeset pre enter next\`?`);
   }
@@ -7678,10 +7685,10 @@ function getPrMessage(branch, prType = 0 /* release */) {
 
 // src/utils/setReleaseMode.ts
 var import_exec3 = __toESM(require_exec());
-var import_fs5 = require("fs");
+var import_fs6 = require("fs");
 async function setReleaseMode(asBranch) {
   try {
-    const isInPreMode = (0, import_fs5.existsSync)("./.changeset/pre.json");
+    const isInPreMode = (0, import_fs6.existsSync)("./.changeset/pre.json");
     if (isInPreMode && asBranch === "main")
       await (0, import_exec3.exec)(`yarn changeset pre exit`);
     if (!isInPreMode && asBranch === "next")
@@ -7735,9 +7742,9 @@ async function didChange(command) {
 }
 
 // src/utils/getChangelogEntry.ts
-var import_fs6 = require("fs");
+var import_fs7 = require("fs");
 function getChangelogEntry(version) {
-  const changelog = (0, import_fs6.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
+  const changelog = (0, import_fs7.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
   const start = 2 + changelog.indexOf(`## ${version}`);
   const end = start + 1 + changelog.slice(start + 1).findIndex((line) => line.startsWith("## "));
   const section = changelog.slice(start, end);
@@ -7789,9 +7796,8 @@ async function createReleasePR() {
     const deleteMeNote = addDeleteMeFile(prBranch);
     await commitAndPush({ branch: prBranch });
     const version = getJson().version;
-    let title = `Upcoming \`${version}\` release (\`${baseBranch}\`)`;
-    if (baseBranch === "main")
-      title = `:warning: ${title}`;
+    const isMain = baseBranch === "main";
+    const title = `:${isMain ? "rocket" : "package"}: Upcoming \`${version}\` release (\`${baseBranch}\`)`;
     const prNote = getPrMessage(sourceBranch);
     const body = `${prNote}
 
