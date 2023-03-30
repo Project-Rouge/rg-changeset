@@ -7767,7 +7767,7 @@ async function prNextToMainRelease() {
     const deleteMeNote = addDeleteMeFile(prBranch);
     await commitAndPush({ branch: prBranch });
     const version = getJson().version;
-    const title = `:warning: Upcoming \`${version}\` release (\`next\` to \`main\`)`;
+    const title = `:rocket: Upcoming \`${version}\` release (\`next\` to \`main\`)`;
     const prNote = getPrMessage("next");
     const body = `${prNote}
 
