@@ -31,7 +31,7 @@ export async function prNextToMainRelease() {
 
     const version = getJson().version;
 
-    const title = `:warning: Upcoming \`${version}\` release (\`next\` to \`main\`)`;
+    const title = `:rocket: Upcoming \`${version}\` release (\`next\` to \`main\`)`;
 
     const prNote = getPrMessage('next');
     const body = `${prNote}\n\n${deleteMeNote}\n\n${getChangelogEntry(version)}`;
