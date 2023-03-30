@@ -4,5 +4,7 @@
   "initialVersions": {
     "@project-rouge/rg-changeset": "1.1.0"
   },
-  "changesets": []
+  "changesets": [
+    "swift-crews-trade"
+  ]
 }
