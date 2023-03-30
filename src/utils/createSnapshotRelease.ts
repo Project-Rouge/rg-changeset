@@ -3,6 +3,7 @@ import { catchErrorLog } from "./catchErrorLog";
 import { Env } from "./Env";
 import { getJson } from "./getJson";
 import { getPR } from "./getPR";
+import { isInPreReleaseMode } from "./isInPreReleaseMode";
 import { pipeLog } from "./pipeLog";
 
 export async function createSnapshotRelease() {
@@ -20,7 +21,8 @@ export async function createSnapshotRelease() {
     if (!pr.title.includes('[snapshot]')) return;
     console.log('createSnapshotRelease: start');
 
-    await exec('yarn changeset pre exit');
+    if (isInPreReleaseMode()) await exec('yarn changeset pre exit');
+
     await exec(`yarn changeset version --snapshot PR${pr.number}`);
     await exec(`yarn changeset version --snapshot PR${pr.number}`);
     await exec(`yarn changeset publish --no-git-tag --tag PR${pr.number}`);
