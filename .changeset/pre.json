@@ -2,9 +2,7 @@
   "mode": "pre",
   "tag": "next",
   "initialVersions": {
-    "@project-rouge/rg-changeset": "1.1.0"
+    "@project-rouge/rg-changeset": "1.1.1"
   },
-  "changesets": [
-    "swift-crews-trade"
-  ]
+  "changesets": []
 }
