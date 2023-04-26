@@ -7694,9 +7694,8 @@ var import_exec2 = __toESM(require_exec());
 // src/utils/has-changeset-files.ts
 var import_fs5 = require("fs");
 function hasChangesetFiles() {
-  debugger;
   const folder = ".changeset";
-  const regex = /\.md$/;
+  const regex = /^(?!README).+\.md$/;
   const items = (0, import_fs5.readdirSync)(folder, { withFileTypes: true });
   for (const item of items) {
     if (item.isFile() && regex.test(item.name))
