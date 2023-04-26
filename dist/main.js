@@ -7482,7 +7482,7 @@ var Env = class {
 };
 
 // src/utils/prChecks.ts
-var import_fs5 = require("fs");
+var import_fs6 = require("fs");
 
 // src/utils/pipeLog.ts
 function pipeLog(message) {
@@ -7690,8 +7690,26 @@ async function createSnapshotRelease() {
 
 // src/utils/validate-changeset.ts
 var import_exec2 = __toESM(require_exec());
+
+// src/utils/has-changeset-files.ts
+var import_fs5 = require("fs");
+function hasChangesetFiles() {
+  debugger;
+  const folder = ".changeset";
+  const regex = /\.md$/;
+  const items = (0, import_fs5.readdirSync)(folder, { withFileTypes: true });
+  for (const item of items) {
+    if (item.isFile() && regex.test(item.name))
+      return true;
+  }
+  return false;
+}
+
+// src/utils/validate-changeset.ts
 async function validateChangeset() {
   pipeLog("validateChangeset");
+  if (!hasChangesetFiles())
+    return;
   await (0, import_exec2.exec)(`git fetch origin main:main`);
   await (0, import_exec2.exec)(`yarn changeset status`);
 }
@@ -7702,7 +7720,7 @@ async function prChecks() {
   checkDeleteMeFile();
   await validateChangeset();
   const pre = ".changeset/pre.json";
-  const isPreRelease = (0, import_fs5.existsSync)(pre);
+  const isPreRelease = (0, import_fs6.existsSync)(pre);
   if (!isPreRelease && Env.thisPrBranch === "next") {
     throw new Error(`${pre} not found. Forgot to run \`yarn changeset pre enter next\`?`);
   }
@@ -7739,10 +7757,10 @@ function getPrMessage(branch, prType = 0 /* release */) {
 
 // src/utils/setReleaseMode.ts
 var import_exec4 = __toESM(require_exec());
-var import_fs6 = require("fs");
+var import_fs7 = require("fs");
 async function setReleaseMode(asBranch) {
   try {
-    const isInPreMode = (0, import_fs6.existsSync)("./.changeset/pre.json");
+    const isInPreMode = (0, import_fs7.existsSync)("./.changeset/pre.json");
     if (isInPreMode && asBranch === "main")
       await (0, import_exec4.exec)(`yarn changeset pre exit`);
     if (!isInPreMode && asBranch === "next")
@@ -7796,9 +7814,9 @@ async function didChange(command) {
 }
 
 // src/utils/getChangelogEntry.ts
-var import_fs7 = require("fs");
+var import_fs8 = require("fs");
 function getChangelogEntry(version) {
-  const changelog = (0, import_fs7.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
+  const changelog = (0, import_fs8.readFileSync)("./CHANGELOG.md", "utf-8").split("\n");
   const start = 2 + changelog.indexOf(`## ${version}`);
   const end = start + 1 + changelog.slice(start + 1).findIndex((line) => line.startsWith("## "));
   const section = changelog.slice(start, end);
