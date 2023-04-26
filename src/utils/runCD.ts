@@ -9,10 +9,11 @@ import { release } from "./release";
 import { validateChangeset } from "./validate-changeset";
 
 export async function runCD() {
+  pipeLog('runCD');
 
   checkDeleteMeFile();
 
-  validateChangeset();
+  await validateChangeset();
 
   pipeLog('setGitConfig');
   await setGitConfig();

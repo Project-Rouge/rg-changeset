@@ -1,10 +1,10 @@
 import { exec } from "@actions/exec";
+import { context } from "@actions/github";
 import { catchErrorLog } from "./catchErrorLog";
-import { Env } from "./Env";
 import { getJson } from "./getJson";
-import { getPR } from "./getPR";
 import { isInPreReleaseMode } from "./isInPreReleaseMode";
 import { pipeLog } from "./pipeLog";
+import { Context } from "@actions/github/lib/context";
 
 export async function createSnapshotRelease() {
 
@@ -12,13 +12,14 @@ export async function createSnapshotRelease() {
 
   try {
 
-    const pr = await getPR({
-      baseBranch: Env.thisPrBranch,
-      prBranch: Env.thisBranch
-    })
+    if (!context.payload.pull_request) return;
 
-    // only run if title includes `[snapshot]`
+    const pr = context.payload.pull_request as Context['payload']['pull_request'] & { title: string };
+
+    if (!pr.title) return;
+
     if (!pr.title.includes('[snapshot]')) return;
+
     console.log('createSnapshotRelease: start');
 
     if (isInPreReleaseMode()) await exec('yarn changeset pre exit');

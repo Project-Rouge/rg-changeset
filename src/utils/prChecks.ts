@@ -10,8 +10,8 @@ export async function prChecks() {
   pipeLog('prChecks');
 
   checkDeleteMeFile();
-
-  validateChangeset();
+  
+  await validateChangeset();
 
   const pre = '.changeset/pre.json';
   const isPreRelease = existsSync(pre);
@@ -25,6 +25,6 @@ export async function prChecks() {
   pipeLog('updatePrDeleteMeStatus');
   await updatePrDeleteMeStatus({ baseBranch: Env.thisPrBranch, prBranch: Env.thisBranch });
 
-  createSnapshotRelease();
+  await createSnapshotRelease();
 
 }
