@@ -21,6 +21,7 @@ export async function prChecks() {
   if (isPreRelease && Env.thisPrBranch === 'main') {
     throw new Error(`PR is in pre-release mode. Forgot to run \`yarn changeset pre exit\`?`)
   }
+
   pipeLog('updatePrDeleteMeStatus');
   await updatePrDeleteMeStatus({ baseBranch: Env.thisPrBranch, prBranch: Env.thisBranch });
 

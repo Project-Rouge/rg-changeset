@@ -7442,6 +7442,11 @@ var Env = class {
 // src/utils/prChecks.ts
 var import_fs5 = require("fs");
 
+// src/utils/pipeLog.ts
+function pipeLog(message) {
+  console.log(`\u{1F33A} ${message}`);
+}
+
 // src/deleteMeUtils/deleteMeFileExists.ts
 var import_fs2 = require("fs");
 
@@ -7490,14 +7495,10 @@ function deleteMeFileExists() {
 
 // src/deleteMeUtils/checkDeleteMeFile.ts
 function checkDeleteMeFile() {
+  pipeLog("checkDeleteMeFile");
   if (deleteMeFileExists()) {
     throw new Error("DELETE_ME.md file found, you need to delete this file in order to do a release");
   }
-}
-
-// src/utils/pipeLog.ts
-function pipeLog(message) {
-  console.log(`\u{1F33A} ${message}`);
 }
 
 // src/utils/getPR.ts
@@ -7646,6 +7647,7 @@ async function createSnapshotRelease() {
 // src/utils/validate-changeset.ts
 var import_exec2 = __toESM(require_exec());
 async function validateChangeset() {
+  pipeLog("validateChangeset");
   await (0, import_exec2.getExecOutput)(`yarn changeset status`);
 }
 
