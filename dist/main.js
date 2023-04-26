@@ -7695,10 +7695,14 @@ var import_exec2 = __toESM(require_exec());
 var import_fs5 = require("fs");
 function hasChangesetFiles() {
   const folder = ".changeset";
+  const ignore = [];
+  if ((0, import_fs5.existsSync)(".changeset/pre.json")) {
+    ignore.push(...getJson(".changeset/pre.json").changesets);
+  }
   const regex = /^(?!README).+\.md$/;
   const items = (0, import_fs5.readdirSync)(folder, { withFileTypes: true });
   for (const item of items) {
-    if (item.isFile() && regex.test(item.name))
+    if (item.isFile() && regex.test(item.name) && !ignore.includes(item.name))
       return true;
   }
   return false;
