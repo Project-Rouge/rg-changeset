@@ -4,11 +4,14 @@ import { updatePrDeleteMeStatus } from "../deleteMeUtils/updatePrDeleteMeStatus"
 import { createSnapshotRelease } from "./createSnapshotRelease";
 import { Env } from "./Env";
 import { pipeLog } from "./pipeLog";
+import { validateChangeset } from "./validate-changeset";
 
 export async function prChecks() {
   pipeLog('prChecks');
 
   checkDeleteMeFile();
+
+  validateChangeset();
 
   const pre = '.changeset/pre.json';
   const isPreRelease = existsSync(pre);

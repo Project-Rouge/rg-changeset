@@ -7390,7 +7390,7 @@ var require_exec = __commonJS({
       });
     }
     exports.exec = exec9;
-    function getExecOutput3(commandLine, args, options) {
+    function getExecOutput4(commandLine, args, options) {
       var _a, _b;
       return __awaiter(this, void 0, void 0, function* () {
         let stdout = "";
@@ -7422,7 +7422,7 @@ var require_exec = __commonJS({
         };
       });
     }
-    exports.getExecOutput = getExecOutput3;
+    exports.getExecOutput = getExecOutput4;
   }
 });
 
@@ -7643,10 +7643,17 @@ async function createSnapshotRelease() {
   }
 }
 
+// src/utils/validate-changeset.ts
+var import_exec2 = __toESM(require_exec());
+async function validateChangeset() {
+  await (0, import_exec2.getExecOutput)(`yarn changeset status`);
+}
+
 // src/utils/prChecks.ts
 async function prChecks() {
   pipeLog("prChecks");
   checkDeleteMeFile();
+  validateChangeset();
   const pre = ".changeset/pre.json";
   const isPreRelease = (0, import_fs5.existsSync)(pre);
   if (!isPreRelease && Env.thisPrBranch === "next") {
@@ -7661,14 +7668,14 @@ async function prChecks() {
 }
 
 // src/utils/runCD.ts
-var import_exec9 = __toESM(require_exec());
+var import_exec10 = __toESM(require_exec());
 
 // src/utils/commitAndPush.ts
-var import_exec2 = __toESM(require_exec());
+var import_exec3 = __toESM(require_exec());
 async function commitAndPush({ branch, message = `update ${branch}` }) {
-  await (0, import_exec2.exec)("git add .");
-  await (0, import_exec2.exec)(`git commit -m "update ${message}"`);
-  await (0, import_exec2.exec)(`git push origin ${branch} --force`);
+  await (0, import_exec3.exec)("git add .");
+  await (0, import_exec3.exec)(`git commit -m "update ${message}"`);
+  await (0, import_exec3.exec)(`git push origin ${branch} --force`);
 }
 
 // src/utils/getPrMessage.ts
@@ -7684,26 +7691,26 @@ function getPrMessage(branch, prType = 0 /* release */) {
 }
 
 // src/utils/setReleaseMode.ts
-var import_exec3 = __toESM(require_exec());
+var import_exec4 = __toESM(require_exec());
 var import_fs6 = require("fs");
 async function setReleaseMode(asBranch) {
   try {
     const isInPreMode = (0, import_fs6.existsSync)("./.changeset/pre.json");
     if (isInPreMode && asBranch === "main")
-      await (0, import_exec3.exec)(`yarn changeset pre exit`);
+      await (0, import_exec4.exec)(`yarn changeset pre exit`);
     if (!isInPreMode && asBranch === "next")
-      await (0, import_exec3.exec)(`yarn changeset pre enter next`);
+      await (0, import_exec4.exec)(`yarn changeset pre enter next`);
   } catch (e) {
     catchErrorLog(e);
   }
 }
 
 // src/utils/upsertPrBranch.ts
-var import_exec4 = __toESM(require_exec());
+var import_exec5 = __toESM(require_exec());
 async function upsertBranch({ sourceBranch, prBranch }) {
-  await (0, import_exec4.exec)("git reset --hard");
-  await (0, import_exec4.exec)(`git checkout ${sourceBranch}`);
-  await (0, import_exec4.exec)(`git checkout -B ${prBranch}`);
+  await (0, import_exec5.exec)("git reset --hard");
+  await (0, import_exec5.exec)(`git checkout ${sourceBranch}`);
+  await (0, import_exec5.exec)(`git checkout -B ${prBranch}`);
 }
 
 // src/utils/prMainToNext.ts
@@ -7729,15 +7736,15 @@ ${deleteMeNote}`;
 }
 
 // src/utils/prNextToMainRelease.ts
-var import_exec6 = __toESM(require_exec());
+var import_exec7 = __toESM(require_exec());
 
 // src/utils/canCommit.ts
-var import_exec5 = __toESM(require_exec());
+var import_exec6 = __toESM(require_exec());
 async function canCommit() {
   return await didChange("git diff --name-only") || await didChange("git ls-files -o --exclude-standard");
 }
 async function didChange(command) {
-  const newFiles = (await (0, import_exec5.getExecOutput)(command, [], { silent: true })).stdout.trim().split("\n").filter((v) => v && v !== ".changeset/pre.json");
+  const newFiles = (await (0, import_exec6.getExecOutput)(command, [], { silent: true })).stdout.trim().split("\n").filter((v) => v && v !== ".changeset/pre.json");
   return newFiles.length > 0;
 }
 
@@ -7759,7 +7766,7 @@ async function prNextToMainRelease() {
     const prBranch = "release/next-to-main-release";
     await upsertBranch({ sourceBranch, prBranch });
     await setReleaseMode("main");
-    await (0, import_exec6.exec)("yarn changeset version");
+    await (0, import_exec7.exec)("yarn changeset version");
     if (!await canCommit()) {
       console.log("nothing to commit.");
       return;
@@ -7781,14 +7788,14 @@ ${getChangelogEntry(version)}`;
 }
 
 // src/utils/createReleasePR.ts
-var import_exec7 = __toESM(require_exec());
+var import_exec8 = __toESM(require_exec());
 async function createReleasePR() {
   try {
     const sourceBranch = Env.thisBranch;
     const baseBranch = sourceBranch;
     const prBranch = `release/${sourceBranch}-release`;
     await upsertBranch({ sourceBranch, prBranch });
-    await (0, import_exec7.exec)("yarn changeset version");
+    await (0, import_exec8.exec)("yarn changeset version");
     if (!await canCommit()) {
       console.log("nothing to commit.");
       return;
@@ -7811,20 +7818,20 @@ ${getChangelogEntry(version)}`;
 }
 
 // src/utils/release.ts
-var import_exec8 = __toESM(require_exec());
+var import_exec9 = __toESM(require_exec());
 var import_github5 = __toESM(require_github());
 async function release() {
   const { version, name } = getJson();
   let npmReleased = false;
   try {
-    const publishedNpmVersions = await (0, import_exec8.getExecOutput)(`npm view ${name} version`);
+    const publishedNpmVersions = await (0, import_exec9.getExecOutput)(`npm view ${name} version`);
     npmReleased = publishedNpmVersions.stdout.split("\n").includes(version);
   } catch (e) {
     catchErrorLog(e);
   }
   try {
     if (!npmReleased)
-      await (0, import_exec8.exec)("yarn changeset publish");
+      await (0, import_exec9.exec)("yarn changeset publish");
   } catch (e) {
     catchErrorLog(e);
   }
@@ -7855,6 +7862,7 @@ async function release() {
 // src/utils/runCD.ts
 async function runCD() {
   checkDeleteMeFile();
+  validateChangeset();
   pipeLog("setGitConfig");
   await setGitConfig();
   pipeLog("release");
@@ -7871,8 +7879,8 @@ async function runCD() {
   }
 }
 async function setGitConfig() {
-  await (0, import_exec9.exec)("git config user.name github-actions");
-  await (0, import_exec9.exec)("git config user.email github-actions@github.com");
+  await (0, import_exec10.exec)("git config user.name github-actions");
+  await (0, import_exec10.exec)("git config user.email github-actions@github.com");
 }
 
 // src/main.ts
