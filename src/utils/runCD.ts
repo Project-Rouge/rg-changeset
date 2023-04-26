@@ -6,10 +6,14 @@ import { prMainToNext } from "./prMainToNext";
 import { prNextToMainRelease } from "./prNextToMainRelease";
 import { createReleasePR } from "./createReleasePR";
 import { release } from "./release";
+import { validateChangeset } from "./validate-changeset";
 
 export async function runCD() {
+  pipeLog('runCD');
 
   checkDeleteMeFile();
+
+  await validateChangeset();
 
   pipeLog('setGitConfig');
   await setGitConfig();

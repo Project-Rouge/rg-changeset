@@ -253,6 +253,10 @@ var require_proxy = __commonJS({
       if (!reqUrl.hostname) {
         return false;
       }
+      const reqHost = reqUrl.hostname;
+      if (isLoopbackAddress(reqHost)) {
+        return true;
+      }
       const noProxy = process.env["no_proxy"] || process.env["NO_PROXY"] || "";
       if (!noProxy) {
         return false;
@@ -270,13 +274,17 @@ var require_proxy = __commonJS({
         upperReqHosts.push(`${upperReqHosts[0]}:${reqPort}`);
       }
       for (const upperNoProxyItem of noProxy.split(",").map((x) => x.trim().toUpperCase()).filter((x) => x)) {
-        if (upperReqHosts.some((x) => x === upperNoProxyItem)) {
+        if (upperNoProxyItem === "*" || upperReqHosts.some((x) => x === upperNoProxyItem || x.endsWith(`.${upperNoProxyItem}`) || upperNoProxyItem.startsWith(".") && x.endsWith(`${upperNoProxyItem}`))) {
           return true;
         }
       }
       return false;
     }
     exports.checkBypass = checkBypass;
+    function isLoopbackAddress(host) {
+      const hostLower = host.toLowerCase();
+      return hostLower === "localhost" || hostLower.startsWith("127.") || hostLower.startsWith("[::1]") || hostLower.startsWith("[0:0:0:0:0:0:0:1]");
+    }
   }
 });
 
@@ -1434,8 +1442,8 @@ var require_dist_node2 = __commonJS({
     function isKeyOperator(operator) {
       return operator === ";" || operator === "&" || operator === "?";
     }
-    function getValues(context5, operator, key, modifier) {
-      var value = context5[key], result = [];
+    function getValues(context6, operator, key, modifier) {
+      var value = context6[key], result = [];
       if (isDefined(value) && value !== "") {
         if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
           value = value.toString();
@@ -1495,7 +1503,7 @@ var require_dist_node2 = __commonJS({
         expand: expand.bind(null, template)
       };
     }
-    function expand(template, context5) {
+    function expand(template, context6) {
       var operators = ["+", "#", ".", "/", ";", "?", "&"];
       return template.replace(/\{([^\{\}]+)\}|([^\{\}]+)/g, function(_, expression, literal) {
         if (expression) {
@@ -1507,7 +1515,7 @@ var require_dist_node2 = __commonJS({
           }
           expression.split(/,/g).forEach(function(variable) {
             var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
-            values.push(getValues(context5, operator, tmp[1], tmp[2] || tmp[3]));
+            values.push(getValues(context6, operator, tmp[1], tmp[2] || tmp[3]));
           });
           if (operator && operator !== "+") {
             var separator = ",";
@@ -4269,6 +4277,11 @@ var require_lib3 = __commonJS({
       const dest = new URL$1(destination).hostname;
       return orig === dest || orig[orig.length - dest.length - 1] === "." && orig.endsWith(dest);
     };
+    var isSameProtocol = function isSameProtocol2(destination, original) {
+      const orig = new URL$1(original).protocol;
+      const dest = new URL$1(destination).protocol;
+      return orig === dest;
+    };
     function fetch(url, opts) {
       if (!fetch.Promise) {
         throw new Error("native promise missing, set fetch.Promise to your favorite alternative");
@@ -4284,7 +4297,7 @@ var require_lib3 = __commonJS({
           let error = new AbortError("The user aborted a request.");
           reject(error);
           if (request.body && request.body instanceof Stream.Readable) {
-            request.body.destroy(error);
+            destroyStream(request.body, error);
           }
           if (!response || !response.body)
             return;
@@ -4319,8 +4332,31 @@ var require_lib3 = __commonJS({
         }
         req.on("error", function(err) {
           reject(new FetchError(`request to ${request.url} failed, reason: ${err.message}`, "system", err));
+          if (response && response.body) {
+            destroyStream(response.body, err);
+          }
           finalize();
         });
+        fixResponseChunkedTransferBadEnding(req, function(err) {
+          if (signal && signal.aborted) {
+            return;
+          }
+          if (response && response.body) {
+            destroyStream(response.body, err);
+          }
+        });
+        if (parseInt(process.version.substring(1)) < 14) {
+          req.on("socket", function(s) {
+            s.addListener("close", function(hadError) {
+              const hasDataListener = s.listenerCount("data") > 0;
+              if (response && hasDataListener && !hadError && !(signal && signal.aborted)) {
+                const err = new Error("Premature close");
+                err.code = "ERR_STREAM_PREMATURE_CLOSE";
+                response.body.emit("error", err);
+              }
+            });
+          });
+        }
         req.on("response", function(res) {
           clearTimeout(reqTimeout);
           const headers = createHeadersLenient(res.headers);
@@ -4371,7 +4407,7 @@ var require_lib3 = __commonJS({
                   timeout: request.timeout,
                   size: request.size
                 };
-                if (!isDomainOrSubdomain(request.url, locationURL)) {
+                if (!isDomainOrSubdomain(request.url, locationURL) || !isSameProtocol(request.url, locationURL)) {
                   for (const name of ["authorization", "www-authenticate", "cookie", "cookie2"]) {
                     requestOpts.headers.delete(name);
                   }
@@ -4432,6 +4468,12 @@ var require_lib3 = __commonJS({
               response = new Response(body, response_options);
               resolve(response);
             });
+            raw.on("end", function() {
+              if (!response) {
+                response = new Response(body, response_options);
+                resolve(response);
+              }
+            });
             return;
           }
           if (codings == "br" && typeof zlib.createBrotliDecompress === "function") {
@@ -4445,6 +4487,33 @@ var require_lib3 = __commonJS({
         });
         writeToStream(req, request);
       });
+    }
+    function fixResponseChunkedTransferBadEnding(request, errorCallback) {
+      let socket;
+      request.on("socket", function(s) {
+        socket = s;
+      });
+      request.on("response", function(response) {
+        const headers = response.headers;
+        if (headers["transfer-encoding"] === "chunked" && !headers["content-length"]) {
+          response.once("close", function(hadError) {
+            const hasDataListener = socket.listenerCount("data") > 0;
+            if (hasDataListener && !hadError) {
+              const err = new Error("Premature close");
+              err.code = "ERR_STREAM_PREMATURE_CLOSE";
+              errorCallback(err);
+            }
+          });
+        }
+      });
+    }
+    function destroyStream(stream, err) {
+      if (stream.destroy) {
+        stream.destroy(err);
+      } else {
+        stream.emit("error", err);
+        stream.end();
+      }
     }
     fetch.isRedirect = function(code) {
       return code === 301 || code === 302 || code === 303 || code === 307 || code === 308;
@@ -6437,11 +6506,13 @@ var require_io_util = __commonJS({
     };
     var _a;
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getCmdPath = exports.tryGetExecutablePath = exports.isRooted = exports.isDirectory = exports.exists = exports.IS_WINDOWS = exports.unlink = exports.symlink = exports.stat = exports.rmdir = exports.rename = exports.readlink = exports.readdir = exports.mkdir = exports.lstat = exports.copyFile = exports.chmod = void 0;
+    exports.getCmdPath = exports.tryGetExecutablePath = exports.isRooted = exports.isDirectory = exports.exists = exports.READONLY = exports.UV_FS_O_EXLOCK = exports.IS_WINDOWS = exports.unlink = exports.symlink = exports.stat = exports.rmdir = exports.rm = exports.rename = exports.readlink = exports.readdir = exports.open = exports.mkdir = exports.lstat = exports.copyFile = exports.chmod = void 0;
     var fs = __importStar(require("fs"));
     var path = __importStar(require("path"));
-    _a = fs.promises, exports.chmod = _a.chmod, exports.copyFile = _a.copyFile, exports.lstat = _a.lstat, exports.mkdir = _a.mkdir, exports.readdir = _a.readdir, exports.readlink = _a.readlink, exports.rename = _a.rename, exports.rmdir = _a.rmdir, exports.stat = _a.stat, exports.symlink = _a.symlink, exports.unlink = _a.unlink;
+    _a = fs.promises, exports.chmod = _a.chmod, exports.copyFile = _a.copyFile, exports.lstat = _a.lstat, exports.mkdir = _a.mkdir, exports.open = _a.open, exports.readdir = _a.readdir, exports.readlink = _a.readlink, exports.rename = _a.rename, exports.rm = _a.rm, exports.rmdir = _a.rmdir, exports.stat = _a.stat, exports.symlink = _a.symlink, exports.unlink = _a.unlink;
     exports.IS_WINDOWS = process.platform === "win32";
+    exports.UV_FS_O_EXLOCK = 268435456;
+    exports.READONLY = fs.constants.O_RDONLY;
     function exists(fsPath) {
       return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -6614,12 +6685,8 @@ var require_io = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.findInPath = exports.which = exports.mkdirP = exports.rmRF = exports.mv = exports.cp = void 0;
     var assert_1 = require("assert");
-    var childProcess = __importStar(require("child_process"));
     var path = __importStar(require("path"));
-    var util_1 = require("util");
     var ioUtil = __importStar(require_io_util());
-    var exec9 = util_1.promisify(childProcess.exec);
-    var execFile = util_1.promisify(childProcess.execFile);
     function cp(source, dest, options = {}) {
       return __awaiter(this, void 0, void 0, function* () {
         const { force, recursive, copySourceDirectory } = readCopyOptions(options);
@@ -6674,41 +6741,16 @@ var require_io = __commonJS({
           if (/[*"<>|]/.test(inputPath)) {
             throw new Error('File path must not contain `*`, `"`, `<`, `>` or `|` on Windows');
           }
-          try {
-            const cmdPath = ioUtil.getCmdPath();
-            if (yield ioUtil.isDirectory(inputPath, true)) {
-              yield exec9(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
-                env: { inputPath }
-              });
-            } else {
-              yield exec9(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
-                env: { inputPath }
-              });
-            }
-          } catch (err) {
-            if (err.code !== "ENOENT")
-              throw err;
-          }
-          try {
-            yield ioUtil.unlink(inputPath);
-          } catch (err) {
-            if (err.code !== "ENOENT")
-              throw err;
-          }
-        } else {
-          let isDir = false;
-          try {
-            isDir = yield ioUtil.isDirectory(inputPath);
-          } catch (err) {
-            if (err.code !== "ENOENT")
-              throw err;
-            return;
-          }
-          if (isDir) {
-            yield execFile(`rm`, [`-rf`, `${inputPath}`]);
-          } else {
-            yield ioUtil.unlink(inputPath);
-          }
+        }
+        try {
+          yield ioUtil.rm(inputPath, {
+            force: true,
+            maxRetries: 3,
+            recursive: true,
+            retryDelay: 300
+          });
+        } catch (err) {
+          throw new Error(`File was unable to be removed ${err}`);
         }
       });
     }
@@ -7377,7 +7419,7 @@ var require_exec = __commonJS({
     exports.getExecOutput = exports.exec = void 0;
     var string_decoder_1 = require("string_decoder");
     var tr = __importStar(require_toolrunner());
-    function exec9(commandLine, args, options) {
+    function exec10(commandLine, args, options) {
       return __awaiter(this, void 0, void 0, function* () {
         const commandArgs = tr.argStringToArray(commandLine);
         if (commandArgs.length === 0) {
@@ -7389,7 +7431,7 @@ var require_exec = __commonJS({
         return runner.exec();
       });
     }
-    exports.exec = exec9;
+    exports.exec = exec10;
     function getExecOutput3(commandLine, args, options) {
       var _a, _b;
       return __awaiter(this, void 0, void 0, function* () {
@@ -7412,7 +7454,7 @@ var require_exec = __commonJS({
           }
         };
         const listeners = Object.assign(Object.assign({}, options === null || options === void 0 ? void 0 : options.listeners), { stdout: stdOutListener, stderr: stdErrListener });
-        const exitCode = yield exec9(commandLine, args, Object.assign(Object.assign({}, options), { listeners }));
+        const exitCode = yield exec10(commandLine, args, Object.assign(Object.assign({}, options), { listeners }));
         stdout += stdoutDecoder.end();
         stderr += stderrDecoder.end();
         return {
@@ -7441,6 +7483,11 @@ var Env = class {
 
 // src/utils/prChecks.ts
 var import_fs5 = require("fs");
+
+// src/utils/pipeLog.ts
+function pipeLog(message) {
+  console.log(`\u{1F33A} ${message}`);
+}
 
 // src/deleteMeUtils/deleteMeFileExists.ts
 var import_fs2 = require("fs");
@@ -7490,14 +7537,10 @@ function deleteMeFileExists() {
 
 // src/deleteMeUtils/checkDeleteMeFile.ts
 function checkDeleteMeFile() {
+  pipeLog("checkDeleteMeFile");
   if (deleteMeFileExists()) {
     throw new Error("DELETE_ME.md file found, you need to delete this file in order to do a release");
   }
-}
-
-// src/utils/pipeLog.ts
-function pipeLog(message) {
-  console.log(`\u{1F33A} ${message}`);
 }
 
 // src/utils/getPR.ts
@@ -7607,6 +7650,7 @@ async function updatePrDeleteMeStatus({ baseBranch, prBranch }) {
 
 // src/utils/createSnapshotRelease.ts
 var import_exec = __toESM(require_exec());
+var import_github5 = __toESM(require_github());
 
 // src/utils/getJson.ts
 var import_fs3 = require("fs");
@@ -7624,10 +7668,11 @@ function isInPreReleaseMode() {
 async function createSnapshotRelease() {
   pipeLog("createSnapshotRelease");
   try {
-    const pr = await getPR({
-      baseBranch: Env.thisPrBranch,
-      prBranch: Env.thisBranch
-    });
+    if (!import_github5.context.payload.pull_request)
+      return;
+    const pr = import_github5.context.payload.pull_request;
+    if (!pr.title)
+      return;
     if (!pr.title.includes("[snapshot]"))
       return;
     console.log("createSnapshotRelease: start");
@@ -7643,10 +7688,19 @@ async function createSnapshotRelease() {
   }
 }
 
+// src/utils/validate-changeset.ts
+var import_exec2 = __toESM(require_exec());
+async function validateChangeset() {
+  pipeLog("validateChangeset");
+  await (0, import_exec2.exec)(`git fetch origin main:main`);
+  await (0, import_exec2.exec)(`yarn changeset status`);
+}
+
 // src/utils/prChecks.ts
 async function prChecks() {
   pipeLog("prChecks");
   checkDeleteMeFile();
+  await validateChangeset();
   const pre = ".changeset/pre.json";
   const isPreRelease = (0, import_fs5.existsSync)(pre);
   if (!isPreRelease && Env.thisPrBranch === "next") {
@@ -7657,18 +7711,18 @@ async function prChecks() {
   }
   pipeLog("updatePrDeleteMeStatus");
   await updatePrDeleteMeStatus({ baseBranch: Env.thisPrBranch, prBranch: Env.thisBranch });
-  createSnapshotRelease();
+  await createSnapshotRelease();
 }
 
 // src/utils/runCD.ts
-var import_exec9 = __toESM(require_exec());
+var import_exec10 = __toESM(require_exec());
 
 // src/utils/commitAndPush.ts
-var import_exec2 = __toESM(require_exec());
+var import_exec3 = __toESM(require_exec());
 async function commitAndPush({ branch, message = `update ${branch}` }) {
-  await (0, import_exec2.exec)("git add .");
-  await (0, import_exec2.exec)(`git commit -m "update ${message}"`);
-  await (0, import_exec2.exec)(`git push origin ${branch} --force`);
+  await (0, import_exec3.exec)("git add .");
+  await (0, import_exec3.exec)(`git commit -m "update ${message}"`);
+  await (0, import_exec3.exec)(`git push origin ${branch} --force`);
 }
 
 // src/utils/getPrMessage.ts
@@ -7684,26 +7738,26 @@ function getPrMessage(branch, prType = 0 /* release */) {
 }
 
 // src/utils/setReleaseMode.ts
-var import_exec3 = __toESM(require_exec());
+var import_exec4 = __toESM(require_exec());
 var import_fs6 = require("fs");
 async function setReleaseMode(asBranch) {
   try {
     const isInPreMode = (0, import_fs6.existsSync)("./.changeset/pre.json");
     if (isInPreMode && asBranch === "main")
-      await (0, import_exec3.exec)(`yarn changeset pre exit`);
+      await (0, import_exec4.exec)(`yarn changeset pre exit`);
     if (!isInPreMode && asBranch === "next")
-      await (0, import_exec3.exec)(`yarn changeset pre enter next`);
+      await (0, import_exec4.exec)(`yarn changeset pre enter next`);
   } catch (e) {
     catchErrorLog(e);
   }
 }
 
 // src/utils/upsertPrBranch.ts
-var import_exec4 = __toESM(require_exec());
+var import_exec5 = __toESM(require_exec());
 async function upsertBranch({ sourceBranch, prBranch }) {
-  await (0, import_exec4.exec)("git reset --hard");
-  await (0, import_exec4.exec)(`git checkout ${sourceBranch}`);
-  await (0, import_exec4.exec)(`git checkout -B ${prBranch}`);
+  await (0, import_exec5.exec)("git reset --hard");
+  await (0, import_exec5.exec)(`git checkout ${sourceBranch}`);
+  await (0, import_exec5.exec)(`git checkout -B ${prBranch}`);
 }
 
 // src/utils/prMainToNext.ts
@@ -7729,15 +7783,15 @@ ${deleteMeNote}`;
 }
 
 // src/utils/prNextToMainRelease.ts
-var import_exec6 = __toESM(require_exec());
+var import_exec7 = __toESM(require_exec());
 
 // src/utils/canCommit.ts
-var import_exec5 = __toESM(require_exec());
+var import_exec6 = __toESM(require_exec());
 async function canCommit() {
   return await didChange("git diff --name-only") || await didChange("git ls-files -o --exclude-standard");
 }
 async function didChange(command) {
-  const newFiles = (await (0, import_exec5.getExecOutput)(command, [], { silent: true })).stdout.trim().split("\n").filter((v) => v && v !== ".changeset/pre.json");
+  const newFiles = (await (0, import_exec6.getExecOutput)(command, [], { silent: true })).stdout.trim().split("\n").filter((v) => v && v !== ".changeset/pre.json");
   return newFiles.length > 0;
 }
 
@@ -7759,7 +7813,7 @@ async function prNextToMainRelease() {
     const prBranch = "release/next-to-main-release";
     await upsertBranch({ sourceBranch, prBranch });
     await setReleaseMode("main");
-    await (0, import_exec6.exec)("yarn changeset version");
+    await (0, import_exec7.exec)("yarn changeset version");
     if (!await canCommit()) {
       console.log("nothing to commit.");
       return;
@@ -7781,14 +7835,14 @@ ${getChangelogEntry(version)}`;
 }
 
 // src/utils/createReleasePR.ts
-var import_exec7 = __toESM(require_exec());
+var import_exec8 = __toESM(require_exec());
 async function createReleasePR() {
   try {
     const sourceBranch = Env.thisBranch;
     const baseBranch = sourceBranch;
     const prBranch = `release/${sourceBranch}-release`;
     await upsertBranch({ sourceBranch, prBranch });
-    await (0, import_exec7.exec)("yarn changeset version");
+    await (0, import_exec8.exec)("yarn changeset version");
     if (!await canCommit()) {
       console.log("nothing to commit.");
       return;
@@ -7811,20 +7865,20 @@ ${getChangelogEntry(version)}`;
 }
 
 // src/utils/release.ts
-var import_exec8 = __toESM(require_exec());
-var import_github5 = __toESM(require_github());
+var import_exec9 = __toESM(require_exec());
+var import_github6 = __toESM(require_github());
 async function release() {
   const { version, name } = getJson();
   let npmReleased = false;
   try {
-    const publishedNpmVersions = await (0, import_exec8.getExecOutput)(`npm view ${name} version`);
+    const publishedNpmVersions = await (0, import_exec9.getExecOutput)(`npm view ${name} version`);
     npmReleased = publishedNpmVersions.stdout.split("\n").includes(version);
   } catch (e) {
     catchErrorLog(e);
   }
   try {
     if (!npmReleased)
-      await (0, import_exec8.exec)("yarn changeset publish");
+      await (0, import_exec9.exec)("yarn changeset publish");
   } catch (e) {
     catchErrorLog(e);
   }
@@ -7832,7 +7886,7 @@ async function release() {
     const octokit = getGithubKit();
     try {
       await octokit.rest.repos.getReleaseByTag({
-        ...import_github5.context.repo,
+        ...import_github6.context.repo,
         tag: version
       });
     } catch (e) {
@@ -7840,7 +7894,7 @@ async function release() {
         throw e;
       console.log("tag does not exist, creating...");
       await octokit.rest.repos.createRelease({
-        ...import_github5.context.repo,
+        ...import_github6.context.repo,
         name: version,
         tag_name: version,
         body: getChangelogEntry(version),
@@ -7854,7 +7908,9 @@ async function release() {
 
 // src/utils/runCD.ts
 async function runCD() {
+  pipeLog("runCD");
   checkDeleteMeFile();
+  await validateChangeset();
   pipeLog("setGitConfig");
   await setGitConfig();
   pipeLog("release");
@@ -7871,8 +7927,8 @@ async function runCD() {
   }
 }
 async function setGitConfig() {
-  await (0, import_exec9.exec)("git config user.name github-actions");
-  await (0, import_exec9.exec)("git config user.email github-actions@github.com");
+  await (0, import_exec10.exec)("git config user.name github-actions");
+  await (0, import_exec10.exec)("git config user.email github-actions@github.com");
 }
 
 // src/main.ts
