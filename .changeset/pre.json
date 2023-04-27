@@ -1,0 +1,8 @@
+{
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "@project-rouge/rg-changeset": "1.2.0"
+  },
+  "changesets": []
+}
