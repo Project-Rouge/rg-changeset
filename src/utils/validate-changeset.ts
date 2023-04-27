@@ -6,7 +6,7 @@ export async function validateChangeset() {
   pipeLog('validateChangeset');
 
   const fileRegex = /^(?!README).+\.md$/;
-  const contentRegex: RegExp = /^---\n"@project-rouge\/rg-changeset": (patch|minor|major)\n---\n\n/;
+  const contentRegex: RegExp = /^---\n"((?:@[\w-]+\/)?[\w-]+)": (patch|minor|major)\n---\n\n/;
   const folder = '.changeset';
   const items = readdirSync(folder, { withFileTypes: true });
   for (const item of items) {
