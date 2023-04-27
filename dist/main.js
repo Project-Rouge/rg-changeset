@@ -7419,7 +7419,7 @@ var require_exec = __commonJS({
     exports.getExecOutput = exports.exec = void 0;
     var string_decoder_1 = require("string_decoder");
     var tr = __importStar(require_toolrunner());
-    function exec10(commandLine, args, options) {
+    function exec9(commandLine, args, options) {
       return __awaiter(this, void 0, void 0, function* () {
         const commandArgs = tr.argStringToArray(commandLine);
         if (commandArgs.length === 0) {
@@ -7431,7 +7431,7 @@ var require_exec = __commonJS({
         return runner.exec();
       });
     }
-    exports.exec = exec10;
+    exports.exec = exec9;
     function getExecOutput3(commandLine, args, options) {
       var _a, _b;
       return __awaiter(this, void 0, void 0, function* () {
@@ -7454,7 +7454,7 @@ var require_exec = __commonJS({
           }
         };
         const listeners = Object.assign(Object.assign({}, options === null || options === void 0 ? void 0 : options.listeners), { stdout: stdOutListener, stderr: stdErrListener });
-        const exitCode = yield exec10(commandLine, args, Object.assign(Object.assign({}, options), { listeners }));
+        const exitCode = yield exec9(commandLine, args, Object.assign(Object.assign({}, options), { listeners }));
         stdout += stdoutDecoder.end();
         stderr += stderrDecoder.end();
         return {
@@ -7666,55 +7666,41 @@ function isInPreReleaseMode() {
 
 // src/utils/createSnapshotRelease.ts
 async function createSnapshotRelease() {
+  if (!import_github5.context.payload.pull_request)
+    return;
+  const pr = import_github5.context.payload.pull_request;
+  if (!pr.title)
+    return;
+  if (!pr.title.includes("[snapshot]"))
+    return;
   pipeLog("createSnapshotRelease");
-  try {
-    if (!import_github5.context.payload.pull_request)
-      return;
-    const pr = import_github5.context.payload.pull_request;
-    if (!pr.title)
-      return;
-    if (!pr.title.includes("[snapshot]"))
-      return;
-    console.log("createSnapshotRelease: start");
-    if (isInPreReleaseMode())
-      await (0, import_exec.exec)("yarn changeset pre exit");
-    await (0, import_exec.exec)(`yarn changeset version --snapshot PR${pr.number}`);
-    await (0, import_exec.exec)(`yarn changeset version --snapshot PR${pr.number}`);
-    await (0, import_exec.exec)(`yarn changeset publish --no-git-tag --tag PR${pr.number}`);
-    console.log("createSnapshotRelease: end");
-    console.log(`\u{1F5BC} You can install this snapshot with \`yarn add ${getJson().name}@PR${pr.number}\``);
-  } catch (e) {
-    catchErrorLog(e);
-  }
+  console.log("createSnapshotRelease: start");
+  if (isInPreReleaseMode())
+    await (0, import_exec.exec)("yarn changeset pre exit");
+  await (0, import_exec.exec)(`yarn changeset version --snapshot PR${pr.number}`);
+  await (0, import_exec.exec)(`yarn changeset version --snapshot PR${pr.number}`);
+  await (0, import_exec.exec)(`yarn changeset publish --no-git-tag --tag PR${pr.number}`);
+  console.log("createSnapshotRelease: end");
+  console.log(`\u{1F5BC} You can install this snapshot with \`yarn add ${getJson().name}@PR${pr.number}\``);
 }
 
 // src/utils/validate-changeset.ts
-var import_exec2 = __toESM(require_exec());
-
-// src/utils/has-changeset-files.ts
 var import_fs5 = require("fs");
-function hasChangesetFiles() {
-  const folder = ".changeset";
-  const ignore = [];
-  if ((0, import_fs5.existsSync)(".changeset/pre.json")) {
-    ignore.push(...getJson(".changeset/pre.json").changesets);
-  }
-  const regex = /^(?!README).+\.md$/;
-  const items = (0, import_fs5.readdirSync)(folder, { withFileTypes: true });
-  for (const item of items) {
-    if (item.isFile() && regex.test(item.name) && !ignore.includes(item.name))
-      return true;
-  }
-  return false;
-}
-
-// src/utils/validate-changeset.ts
 async function validateChangeset() {
   pipeLog("validateChangeset");
-  if (!hasChangesetFiles())
-    return;
-  await (0, import_exec2.exec)(`git fetch origin main:main`);
-  await (0, import_exec2.exec)(`yarn changeset status`);
+  const fileRegex = /^(?!README).+\.md$/;
+  const contentRegex = /^---\n"@project-rouge\/rg-changeset": (patch|minor|major)\n---\n\n/;
+  const folder = ".changeset";
+  const items = (0, import_fs5.readdirSync)(folder, { withFileTypes: true });
+  for (const item of items) {
+    if (!item.isFile())
+      continue;
+    if (!fileRegex.test(item.name))
+      continue;
+    const content = (0, import_fs5.readFileSync)(`${folder}/${item.name}`, "utf-8");
+    if (!contentRegex.test(content))
+      throw new Error(`${item.name} has an invalid format.`);
+  }
 }
 
 // src/utils/prChecks.ts
@@ -7736,14 +7722,14 @@ async function prChecks() {
 }
 
 // src/utils/runCD.ts
-var import_exec10 = __toESM(require_exec());
+var import_exec9 = __toESM(require_exec());
 
 // src/utils/commitAndPush.ts
-var import_exec3 = __toESM(require_exec());
+var import_exec2 = __toESM(require_exec());
 async function commitAndPush({ branch, message = `update ${branch}` }) {
-  await (0, import_exec3.exec)("git add .");
-  await (0, import_exec3.exec)(`git commit -m "update ${message}"`);
-  await (0, import_exec3.exec)(`git push origin ${branch} --force`);
+  await (0, import_exec2.exec)("git add .");
+  await (0, import_exec2.exec)(`git commit -m "update ${message}"`);
+  await (0, import_exec2.exec)(`git push origin ${branch} --force`);
 }
 
 // src/utils/getPrMessage.ts
@@ -7759,26 +7745,26 @@ function getPrMessage(branch, prType = 0 /* release */) {
 }
 
 // src/utils/setReleaseMode.ts
-var import_exec4 = __toESM(require_exec());
+var import_exec3 = __toESM(require_exec());
 var import_fs7 = require("fs");
 async function setReleaseMode(asBranch) {
   try {
     const isInPreMode = (0, import_fs7.existsSync)("./.changeset/pre.json");
     if (isInPreMode && asBranch === "main")
-      await (0, import_exec4.exec)(`yarn changeset pre exit`);
+      await (0, import_exec3.exec)(`yarn changeset pre exit`);
     if (!isInPreMode && asBranch === "next")
-      await (0, import_exec4.exec)(`yarn changeset pre enter next`);
+      await (0, import_exec3.exec)(`yarn changeset pre enter next`);
   } catch (e) {
     catchErrorLog(e);
   }
 }
 
 // src/utils/upsertPrBranch.ts
-var import_exec5 = __toESM(require_exec());
+var import_exec4 = __toESM(require_exec());
 async function upsertBranch({ sourceBranch, prBranch }) {
-  await (0, import_exec5.exec)("git reset --hard");
-  await (0, import_exec5.exec)(`git checkout ${sourceBranch}`);
-  await (0, import_exec5.exec)(`git checkout -B ${prBranch}`);
+  await (0, import_exec4.exec)("git reset --hard");
+  await (0, import_exec4.exec)(`git checkout ${sourceBranch}`);
+  await (0, import_exec4.exec)(`git checkout -B ${prBranch}`);
 }
 
 // src/utils/prMainToNext.ts
@@ -7804,15 +7790,15 @@ ${deleteMeNote}`;
 }
 
 // src/utils/prNextToMainRelease.ts
-var import_exec7 = __toESM(require_exec());
+var import_exec6 = __toESM(require_exec());
 
 // src/utils/canCommit.ts
-var import_exec6 = __toESM(require_exec());
+var import_exec5 = __toESM(require_exec());
 async function canCommit() {
   return await didChange("git diff --name-only") || await didChange("git ls-files -o --exclude-standard");
 }
 async function didChange(command) {
-  const newFiles = (await (0, import_exec6.getExecOutput)(command, [], { silent: true })).stdout.trim().split("\n").filter((v) => v && v !== ".changeset/pre.json");
+  const newFiles = (await (0, import_exec5.getExecOutput)(command, [], { silent: true })).stdout.trim().split("\n").filter((v) => v && v !== ".changeset/pre.json");
   return newFiles.length > 0;
 }
 
@@ -7834,7 +7820,7 @@ async function prNextToMainRelease() {
     const prBranch = "release/next-to-main-release";
     await upsertBranch({ sourceBranch, prBranch });
     await setReleaseMode("main");
-    await (0, import_exec7.exec)("yarn changeset version");
+    await (0, import_exec6.exec)("yarn changeset version");
     if (!await canCommit()) {
       console.log("nothing to commit.");
       return;
@@ -7856,14 +7842,14 @@ ${getChangelogEntry(version)}`;
 }
 
 // src/utils/createReleasePR.ts
-var import_exec8 = __toESM(require_exec());
+var import_exec7 = __toESM(require_exec());
 async function createReleasePR() {
   try {
     const sourceBranch = Env.thisBranch;
     const baseBranch = sourceBranch;
     const prBranch = `release/${sourceBranch}-release`;
     await upsertBranch({ sourceBranch, prBranch });
-    await (0, import_exec8.exec)("yarn changeset version");
+    await (0, import_exec7.exec)("yarn changeset version");
     if (!await canCommit()) {
       console.log("nothing to commit.");
       return;
@@ -7886,20 +7872,20 @@ ${getChangelogEntry(version)}`;
 }
 
 // src/utils/release.ts
-var import_exec9 = __toESM(require_exec());
+var import_exec8 = __toESM(require_exec());
 var import_github6 = __toESM(require_github());
 async function release() {
   const { version, name } = getJson();
   let npmReleased = false;
   try {
-    const publishedNpmVersions = await (0, import_exec9.getExecOutput)(`npm view ${name} version`);
+    const publishedNpmVersions = await (0, import_exec8.getExecOutput)(`npm view ${name} version`);
     npmReleased = publishedNpmVersions.stdout.split("\n").includes(version);
   } catch (e) {
     catchErrorLog(e);
   }
   try {
     if (!npmReleased)
-      await (0, import_exec9.exec)("yarn changeset publish");
+      await (0, import_exec8.exec)("yarn changeset publish");
   } catch (e) {
     catchErrorLog(e);
   }
@@ -7948,8 +7934,8 @@ async function runCD() {
   }
 }
 async function setGitConfig() {
-  await (0, import_exec10.exec)("git config user.name github-actions");
-  await (0, import_exec10.exec)("git config user.email github-actions@github.com");
+  await (0, import_exec9.exec)("git config user.name github-actions");
+  await (0, import_exec9.exec)("git config user.email github-actions@github.com");
 }
 
 // src/main.ts
