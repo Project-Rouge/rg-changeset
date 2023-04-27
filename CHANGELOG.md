@@ -1,5 +1,11 @@
 # @project-rouge/rg-changeset
 
+## 1.2.1-next.0
+
+### Patch Changes
+
+- 9964476: Fix `validateChangeset` regex function.
+
 ## 1.2.0
 
 ### Minor Changes

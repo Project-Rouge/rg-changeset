@@ -4,5 +4,7 @@
   "initialVersions": {
     "@project-rouge/rg-changeset": "1.2.0"
   },
-  "changesets": []
+  "changesets": [
+    "olive-mirrors-type"
+  ]
 }
