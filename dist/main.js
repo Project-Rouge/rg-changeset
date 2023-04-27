@@ -7689,7 +7689,7 @@ var import_fs5 = require("fs");
 async function validateChangeset() {
   pipeLog("validateChangeset");
   const fileRegex = /^(?!README).+\.md$/;
-  const contentRegex = /^---\n"@project-rouge\/rg-changeset": (patch|minor|major)\n---\n\n/;
+  const contentRegex = /^---\n"((?:@[\w-]+\/)?[\w-]+)": (patch|minor|major)\n---\n\n/;
   const folder = ".changeset";
   const items = (0, import_fs5.readdirSync)(folder, { withFileTypes: true });
   for (const item of items) {
