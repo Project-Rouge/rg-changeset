@@ -1,5 +1,17 @@
 # @project-rouge/rg-changeset
 
+## 1.2.0
+
+### Minor Changes
+
+- 99c9f5a: [CU-863gk5ky4](https://app.clickup.com/t/863gk5ky4) Validate changeset files
+
+## 1.2.0-next.0
+
+### Minor Changes
+
+- 99c9f5a: [CU-863gk5ky4](https://app.clickup.com/t/863gk5ky4) Validate changeset files
+
 ## 1.1.1
 
 ### Patch Changes

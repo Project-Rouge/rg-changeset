@@ -4,11 +4,14 @@ import { updatePrDeleteMeStatus } from "../deleteMeUtils/updatePrDeleteMeStatus"
 import { createSnapshotRelease } from "./createSnapshotRelease";
 import { Env } from "./Env";
 import { pipeLog } from "./pipeLog";
+import { validateChangeset } from "./validate-changeset";
 
 export async function prChecks() {
   pipeLog('prChecks');
 
   checkDeleteMeFile();
+  
+  await validateChangeset();
 
   const pre = '.changeset/pre.json';
   const isPreRelease = existsSync(pre);
@@ -18,9 +21,10 @@ export async function prChecks() {
   if (isPreRelease && Env.thisPrBranch === 'main') {
     throw new Error(`PR is in pre-release mode. Forgot to run \`yarn changeset pre exit\`?`)
   }
+
   pipeLog('updatePrDeleteMeStatus');
   await updatePrDeleteMeStatus({ baseBranch: Env.thisPrBranch, prBranch: Env.thisBranch });
 
-  createSnapshotRelease();
+  await createSnapshotRelease();
 
 }
